@@ -30,7 +30,16 @@ esac
 
 load_test_environment "$repo_root"
 print_token_profile
-mkdir -p "$repo_root/reports/k6"
+report_dir="${REPORT_DIR:-$repo_root/reports/k6}"
+if [[ "$report_dir" != /* ]]; then
+  report_dir="$repo_root/$report_dir"
+fi
+if [[ "$report_dir" != "$repo_root"/* ]]; then
+  echo "REPORT_DIR must be inside $repo_root for container compatibility" >&2
+  exit 2
+fi
+container_report_dir="/work/${report_dir#"$repo_root"/}"
+mkdir -p "$report_dir"
 
 export BASE_URL="$PORTAL_BASE_URL"
 export ACCESS_TOKEN="$PORTAL_ACCESS_TOKEN"
@@ -40,7 +49,7 @@ export DURATION="${DURATION:-30s}"
 export K6_INSECURE_SKIP_TLS_VERIFY="$TLS_INSECURE"
 
 if command -v k6 >/dev/null 2>&1; then
-  exec k6 run --summary-export "$repo_root/reports/k6/$profile-summary.json" "$script"
+  exec k6 run --summary-export "$report_dir/$profile-summary.json" "$script"
 fi
 
 engine="$(find_container_engine)" || {
@@ -65,5 +74,5 @@ else
 fi
 
 exec "$engine" "${container_args[@]}" "$image" run \
-  --summary-export "/work/reports/k6/$profile-summary.json" \
+  --summary-export "$container_report_dir/$profile-summary.json" \
   "/work/${script#"$repo_root"/}"

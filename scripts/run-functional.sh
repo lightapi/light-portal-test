@@ -28,7 +28,16 @@ for input in "$@"; do
   fi
 done
 
-mkdir -p "$repo_root/reports/hurl"
+report_dir="${REPORT_DIR:-$repo_root/reports/hurl}"
+if [[ "$report_dir" != /* ]]; then
+  report_dir="$repo_root/$report_dir"
+fi
+if [[ "$report_dir" != "$repo_root"/* ]]; then
+  echo "REPORT_DIR must be inside $repo_root for container compatibility" >&2
+  exit 2
+fi
+container_report_dir="/work/${report_dir#"$repo_root"/}"
+mkdir -p "$report_dir/json"
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 export HURL_SECRET_access_token="$PORTAL_ACCESS_TOKEN"
 args=(
@@ -46,7 +55,8 @@ fi
 
 if command -v hurl >/dev/null 2>&1; then
   exec hurl "${args[@]}" \
-    --report-junit "$repo_root/reports/hurl/junit.xml" \
+    --report-json "$report_dir/json" \
+    --report-junit "$report_dir/junit.xml" \
     "${inputs[@]}"
 fi
 
@@ -68,5 +78,6 @@ fi
 
 exec "$engine" "${container_args[@]}" "$image" \
   "${args[@]}" \
-  --report-junit /work/reports/hurl/junit.xml \
+  --report-json "$container_report_dir/json" \
+  --report-junit "$container_report_dir/junit.xml" \
   "${container_inputs[@]}"

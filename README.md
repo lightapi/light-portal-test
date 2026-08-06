@@ -80,6 +80,22 @@ make llm
 make functional
 ```
 
+Run validation, functional tests, a short repeated run, and the non-billable
+models performance test in one batch:
+
+```bash
+make batch
+```
+
+`make all` is an alias for `make batch`. The batch deliberately skips the
+billable LLM performance workload unless it is explicitly enabled. The normal
+functional and repeated chat cases still call the configured provider; the
+default batch performs one functional pass followed by three repeated passes.
+
+```bash
+make batch ALLOW_BILLABLE_TESTS=true VUS=1 DURATION=30s
+```
+
 Select a different committed identity with:
 
 ```bash
@@ -98,11 +114,27 @@ Repeat the smoke and LLM cases 20 times with a ten-second pause:
 make repeat COUNT=20 INTERVAL=10
 ```
 
+Each attempt gets its own Hurl JSON and JUnit report. At completion, the runner
+writes `summary.json` with pass/fail counts plus overall and per-test p50, p95,
+and maximum latency. Configure the performance signal with milliseconds:
+
+```bash
+make repeat COUNT=20 REPEAT_WARN_P95_MS=10000 REPEAT_FAIL_P95_MS=30000
+```
+
+Crossing the warning threshold prints `WARNING` but exits successfully.
+Crossing the failure threshold, or any failed functional attempt, exits
+nonzero so a CI job can send its normal failure notification. This repository
+does not directly send email or chat notifications.
+
 Run continuously until the first failure:
 
 ```bash
 make repeat COUNT=0 INTERVAL=30
 ```
+
+Use `STOP_ON_FAILURE=false` to collect all requested attempts even after an
+individual failure.
 
 Run a non-billable `/v1/models` performance smoke test:
 
@@ -116,7 +148,9 @@ Run a deliberately small live-provider completion workload:
 make perf-live ALLOW_BILLABLE_TESTS=true VUS=1 DURATION=30s
 ```
 
-Reports are written below `reports/` and ignored by Git.
+Reports are written below timestamped directories in `reports/runs/` and are
+ignored by Git. Direct `make smoke`, `make llm`, and performance commands keep
+their reports in the corresponding top-level `reports/` directory.
 
 ## Adding tests
 
