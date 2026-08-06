@@ -4,3 +4,6 @@ reports/*
 *.local.env
 *.log
 .DS_Store
+.claude/
+AGENTS.md
+CLAUDE.md
