@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1",
+  "defaultProfile": "portal-admin",
+  "profiles": {
+    "portal-admin": {
+      "file": "portal-admin.jwt",
+      "description": "Public portal-config-loc administrator test identity",
+      "expectedClaims": {
+        "issuer": "urn:com:networknt:oauth2:v1",
+        "audience": "urn:com.networknt",
+        "subject": "01964b05-5532-7c79-8cde-191dcbd421b8",
+        "clientId": "f7d42348-c647-4efb-a52d-4c5787421e72",
+        "scopes": [
+          "portal.r",
+          "portal.w"
+        ],
+        "roles": [
+          "account-manager",
+          "admin",
+          "github-reader",
+          "host-admin",
+          "mcp-reader",
+          "user"
+        ]
+      }
+    }
+  }
+}

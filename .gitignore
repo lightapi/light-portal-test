@@ -1,0 +1,6 @@
+reports/*
+!reports/.gitkeep
+.env
+*.local.env
+*.log
+.DS_Store
