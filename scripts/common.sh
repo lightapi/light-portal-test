@@ -24,7 +24,7 @@ load_test_environment() {
   [[ -n "$original_token_profile" ]] && TOKEN_PROFILE="$original_token_profile"
   [[ -n "$original_portal_token_dir" ]] && PORTAL_TOKEN_DIR="$original_portal_token_dir"
 
-  PORTAL_BASE_URL="${PORTAL_BASE_URL:-https://localhost}"
+  PORTAL_BASE_URL="${PORTAL_BASE_URL:-https://localhost:8444}"
   LLM_PUBLIC_ALIAS="${LLM_PUBLIC_ALIAS:-assistant-dev}"
   TLS_INSECURE="${TLS_INSECURE:-true}"
 

@@ -33,7 +33,8 @@ grafana/k6:2.0.0
 
 Override them with `HURL_IMAGE`, `K6_IMAGE`, or select a specific runtime with
 `CONTAINER_ENGINE=podman|docker`. Container execution uses host networking so
-`https://localhost` continues to address `portal-config-loc` on Linux.
+`https://localhost:8444` addresses the dedicated `llm-gateway` service in
+`portal-config-loc` on Linux.
 
 ## Configuration
 
@@ -61,7 +62,7 @@ server-side credentials and are not consumed by this test suite.
 Required test configuration:
 
 ```bash
-PORTAL_BASE_URL=https://localhost
+PORTAL_BASE_URL=https://localhost:8444
 TOKEN_PROFILE=portal-admin
 LLM_PUBLIC_ALIAS=assistant-dev
 TLS_INSECURE=true
