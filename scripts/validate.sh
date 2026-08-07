@@ -11,7 +11,7 @@ done
 "$repo_root/scripts/validate-token-fixtures.sh"
 
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck "${shell_files[@]}"
+  shellcheck -x -P "$repo_root/scripts" "${shell_files[@]}"
 else
   echo "warning: shellcheck is not installed; skipping shell lint" >&2
 fi
