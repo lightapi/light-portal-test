@@ -9,6 +9,14 @@ load_test_environment() {
   local original_tls_insecure="${TLS_INSECURE-}"
   local original_token_profile="${TOKEN_PROFILE-}"
   local original_portal_token_dir="${PORTAL_TOKEN_DIR-}"
+  local original_embedding_query_alias="${EMBEDDING_QUERY_ALIAS-}"
+  local original_embedding_index_alias="${EMBEDDING_INDEX_ALIAS-}"
+  local original_embedding_space_id="${EMBEDDING_SPACE_ID-}"
+  local original_embedding_space_revision="${EMBEDDING_SPACE_REVISION-}"
+  local original_embedding_dimension="${EMBEDDING_DIMENSION-}"
+  local original_embedding_access_token="${EMBEDDING_ACCESS_TOKEN-}"
+  local original_embedding_query_access_token="${EMBEDDING_QUERY_ACCESS_TOKEN-}"
+  local original_embedding_index_access_token="${EMBEDDING_INDEX_ACCESS_TOKEN-}"
 
   if [[ -f "$env_file" ]]; then
     set -a
@@ -23,6 +31,14 @@ load_test_environment() {
   [[ -n "$original_tls_insecure" ]] && TLS_INSECURE="$original_tls_insecure"
   [[ -n "$original_token_profile" ]] && TOKEN_PROFILE="$original_token_profile"
   [[ -n "$original_portal_token_dir" ]] && PORTAL_TOKEN_DIR="$original_portal_token_dir"
+  [[ -n "$original_embedding_query_alias" ]] && EMBEDDING_QUERY_ALIAS="$original_embedding_query_alias"
+  [[ -n "$original_embedding_index_alias" ]] && EMBEDDING_INDEX_ALIAS="$original_embedding_index_alias"
+  [[ -n "$original_embedding_space_id" ]] && EMBEDDING_SPACE_ID="$original_embedding_space_id"
+  [[ -n "$original_embedding_space_revision" ]] && EMBEDDING_SPACE_REVISION="$original_embedding_space_revision"
+  [[ -n "$original_embedding_dimension" ]] && EMBEDDING_DIMENSION="$original_embedding_dimension"
+  [[ -n "$original_embedding_access_token" ]] && EMBEDDING_ACCESS_TOKEN="$original_embedding_access_token"
+  [[ -n "$original_embedding_query_access_token" ]] && EMBEDDING_QUERY_ACCESS_TOKEN="$original_embedding_query_access_token"
+  [[ -n "$original_embedding_index_access_token" ]] && EMBEDDING_INDEX_ACCESS_TOKEN="$original_embedding_index_access_token"
 
   PORTAL_BASE_URL="${PORTAL_BASE_URL:-https://localhost:8444}"
   LLM_PUBLIC_ALIAS="${LLM_PUBLIC_ALIAS:-assistant-dev}"

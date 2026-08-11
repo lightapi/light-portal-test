@@ -40,6 +40,8 @@ container_report_dir="/work/${report_dir#"$repo_root"/}"
 mkdir -p "$report_dir/json"
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 export HURL_SECRET_access_token="$PORTAL_ACCESS_TOKEN"
+export HURL_SECRET_embedding_query_access_token="${EMBEDDING_QUERY_ACCESS_TOKEN:-$PORTAL_ACCESS_TOKEN}"
+export HURL_SECRET_embedding_index_access_token="${EMBEDDING_INDEX_ACCESS_TOKEN:-$PORTAL_ACCESS_TOKEN}"
 args=(
   --test
   --jobs 1
@@ -47,6 +49,11 @@ args=(
   --max-time 60s
   --variable "base_url=$PORTAL_BASE_URL"
   --variable "llm_model=$LLM_PUBLIC_ALIAS"
+  --variable "embedding_query_alias=${EMBEDDING_QUERY_ALIAS:-kb-query}"
+  --variable "embedding_index_alias=${EMBEDDING_INDEX_ALIAS:-kb-index}"
+  --variable "embedding_space_id=${EMBEDDING_SPACE_ID:-nvidia-nemotron-3-embed-1b-float-v1}"
+  --variable "embedding_space_revision=${EMBEDDING_SPACE_REVISION:-1}"
+  --variable "embedding_dimension=${EMBEDDING_DIMENSION:-2048}"
   --variable "run_id=$run_id"
 )
 if tls_is_insecure; then
@@ -69,6 +76,8 @@ container_args=(
   run --rm --network host
   --workdir /work
   --env HURL_SECRET_access_token
+  --env HURL_SECRET_embedding_query_access_token
+  --env HURL_SECRET_embedding_index_access_token
 )
 if [[ "$engine" == podman ]]; then
   container_args+=(--userns keep-id --volume "$repo_root:/work:Z")

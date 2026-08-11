@@ -65,6 +65,11 @@ Required test configuration:
 PORTAL_BASE_URL=https://localhost:8444
 TOKEN_PROFILE=portal-admin
 LLM_PUBLIC_ALIAS=assistant-dev
+EMBEDDING_QUERY_ALIAS=kb-query
+EMBEDDING_INDEX_ALIAS=kb-index
+EMBEDDING_SPACE_ID=nvidia-nemotron-3-embed-1b-float-v1
+EMBEDDING_SPACE_REVISION=1
+EMBEDDING_DIMENSION=2048
 TLS_INSECURE=true
 ```
 
@@ -81,6 +86,24 @@ make llm
 make functional
 ```
 
+Test the published NVIDIA embedding query and indexing Aliases through the
+gateway with two bounded requests:
+
+```bash
+make embeddings ALLOW_BILLABLE_TESTS=true
+```
+
+This lane checks `kb-query` and `kb-index` independently, including the
+declared embedding-space response headers and the 2048-value vector dimension.
+It calls the gateway only; `NVIDIA_API_KEY` remains a server-side gateway
+secret and is never read by this repository. Override any Alias or contract
+value with the corresponding `EMBEDDING_*` variable when testing another
+publication. If the embedding Aliases are bound to dedicated principals, set
+`EMBEDDING_QUERY_ACCESS_TOKEN` and `EMBEDDING_INDEX_ACCESS_TOKEN` to gateway
+caller tokens for `knowledge-service` and `knowledge-indexer`, respectively.
+The tokens are passed to Hurl as secret variables and never as command-line
+arguments. Each falls back to the ordinary Portal test token when omitted.
+
 Run validation, functional tests, a short repeated run, and the non-billable
 models performance test in one batch:
 
@@ -88,13 +111,28 @@ models performance test in one batch:
 make batch
 ```
 
-`make all` is an alias for `make batch`. The batch deliberately skips the
-billable LLM performance workload unless it is explicitly enabled. The normal
-functional and repeated chat cases still call the configured provider; the
-default batch performs one functional pass followed by three repeated passes.
+The batch deliberately skips the billable LLM performance workload unless it
+is explicitly enabled. The normal functional and repeated chat cases still
+call the configured provider; the default batch performs one functional pass
+followed by three repeated passes.
 
 ```bash
 make batch ALLOW_BILLABLE_TESTS=true VUS=1 DURATION=30s
+```
+
+Run every test lane, including the billable LLM performance and embedding
+tests, with one command:
+
+```bash
+make all
+```
+
+Calling `make all` is the explicit billable-test opt-in; no additional variable
+or command-line switch is required. An explicit opt-out is honored and skips
+the gated LLM performance and embedding lanes:
+
+```bash
+make all ALLOW_BILLABLE_TESTS=false
 ```
 
 Select a different committed identity with:

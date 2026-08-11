@@ -12,11 +12,27 @@ DURATION ?= 30s
 ALLOW_BILLABLE_TESTS ?= false
 TOKEN_PROFILE ?=
 LLM_PUBLIC_ALIAS ?=
+EMBEDDING_QUERY_ALIAS ?= kb-query
+EMBEDDING_INDEX_ALIAS ?= kb-index
+EMBEDDING_SPACE_ID ?= nvidia-nemotron-3-embed-1b-float-v1
+EMBEDDING_SPACE_REVISION ?= 1
+EMBEDDING_DIMENSION ?= 2048
+
+ifneq ($(filter command line environment environment override,$(origin ALLOW_BILLABLE_TESTS)),)
+ALL_ALLOW_BILLABLE_TESTS := $(ALLOW_BILLABLE_TESTS)
+else
+ALL_ALLOW_BILLABLE_TESTS := true
+endif
 
 export TOKEN_PROFILE
 export LLM_PUBLIC_ALIAS
+export EMBEDDING_QUERY_ALIAS
+export EMBEDDING_INDEX_ALIAS
+export EMBEDDING_SPACE_ID
+export EMBEDDING_SPACE_REVISION
+export EMBEDDING_DIMENSION
 
-.PHONY: validate smoke llm functional repeat perf-smoke perf-live batch all
+.PHONY: validate smoke llm embeddings functional repeat perf-smoke perf-live batch all
 
 validate:
 	./scripts/validate.sh
@@ -26,6 +42,9 @@ smoke:
 
 llm:
 	./scripts/run-functional.sh tests/llm
+
+embeddings:
+	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) ./scripts/run-embeddings.sh
 
 functional:
 	./scripts/run-functional.sh tests/smoke tests/llm
@@ -48,4 +67,10 @@ batch:
 		ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) VUS=$(VUS) DURATION=$(DURATION) \
 		./scripts/run-all.sh
 
-all: batch
+all:
+	$(MAKE) batch ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)
+ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
+	$(MAKE) embeddings ALLOW_BILLABLE_TESTS=true
+else
+	@echo "Skipping billable embedding tests because ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)."
+endif
