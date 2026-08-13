@@ -9,6 +9,7 @@ BATCH_REPEAT_COUNT ?= 3
 BATCH_REPEAT_INTERVAL ?= 5
 VUS ?= 1
 DURATION ?= 30s
+LLM_ITERATIONS ?= 10
 ALLOW_BILLABLE_TESTS ?= false
 TOKEN_PROFILE ?=
 LLM_PUBLIC_ALIAS ?=
@@ -32,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate smoke llm embeddings functional repeat perf-smoke perf-live batch all
+.PHONY: validate smoke llm workflow-mcp embeddings functional repeat perf-smoke perf-live batch all
 
 validate:
 	./scripts/validate.sh
@@ -43,11 +44,14 @@ smoke:
 llm:
 	./scripts/run-functional.sh tests/llm
 
+workflow-mcp:
+	./scripts/run-functional.sh tests/workflow-mcp
+
 embeddings:
 	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) ./scripts/run-embeddings.sh
 
 functional:
-	./scripts/run-functional.sh tests/smoke tests/llm
+	./scripts/run-functional.sh tests/smoke tests/llm tests/workflow-mcp
 
 repeat:
 	COUNT=$(COUNT) INTERVAL=$(INTERVAL) STOP_ON_FAILURE=$(STOP_ON_FAILURE) \
@@ -58,13 +62,14 @@ perf-smoke:
 	VUS=$(VUS) DURATION=$(DURATION) ./scripts/run-performance.sh models-smoke
 
 perf-live:
-	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) VUS=$(VUS) DURATION=$(DURATION) \
+	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) VUS=$(VUS) LLM_ITERATIONS=$(LLM_ITERATIONS) \
 		./scripts/run-performance.sh llm-buffered
 
 batch:
 	BATCH_REPEAT_COUNT=$(BATCH_REPEAT_COUNT) BATCH_REPEAT_INTERVAL=$(BATCH_REPEAT_INTERVAL) \
 		REPEAT_WARN_P95_MS=$(REPEAT_WARN_P95_MS) REPEAT_FAIL_P95_MS=$(REPEAT_FAIL_P95_MS) \
 		ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) VUS=$(VUS) DURATION=$(DURATION) \
+		LLM_ITERATIONS=$(LLM_ITERATIONS) \
 		./scripts/run-all.sh
 
 all:

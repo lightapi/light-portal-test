@@ -9,7 +9,7 @@ load_test_environment "$repo_root"
 print_token_profile
 
 if [[ $# -eq 0 ]]; then
-  set -- tests/smoke tests/llm
+  set -- tests/smoke tests/llm tests/workflow-mcp
 fi
 
 inputs=()
@@ -48,12 +48,15 @@ args=(
   --connect-timeout 10s
   --max-time 60s
   --variable "base_url=$PORTAL_BASE_URL"
+  --variable "mcp_base_url=$MCP_BASE_URL"
   --variable "llm_model=$LLM_PUBLIC_ALIAS"
   --variable "embedding_query_alias=${EMBEDDING_QUERY_ALIAS:-kb-query}"
   --variable "embedding_index_alias=${EMBEDDING_INDEX_ALIAS:-kb-index}"
   --variable "embedding_space_id=${EMBEDDING_SPACE_ID:-nvidia-nemotron-3-embed-1b-float-v1}"
   --variable "embedding_space_revision=${EMBEDDING_SPACE_REVISION:-1}"
   --variable "embedding_dimension=${EMBEDDING_DIMENSION:-2048}"
+  --variable "workflow_smoke_tool=$WORKFLOW_SMOKE_TOOL"
+  --variable "customer_360_tool=$CUSTOMER_360_TOOL"
   --variable "run_id=$run_id"
 )
 if tls_is_insecure; then

@@ -46,6 +46,7 @@ export ACCESS_TOKEN="$PORTAL_ACCESS_TOKEN"
 export LLM_MODEL="$LLM_PUBLIC_ALIAS"
 export VUS="${VUS:-1}"
 export DURATION="${DURATION:-30s}"
+export LLM_ITERATIONS="${LLM_ITERATIONS:-10}"
 export K6_INSECURE_SKIP_TLS_VERIFY="$TLS_INSECURE"
 
 if command -v k6 >/dev/null 2>&1; then
@@ -65,6 +66,7 @@ container_args=(
   --env LLM_MODEL
   --env VUS
   --env DURATION
+  --env LLM_ITERATIONS
   --env K6_INSECURE_SKIP_TLS_VERIFY
 )
 if [[ "$engine" == podman ]]; then

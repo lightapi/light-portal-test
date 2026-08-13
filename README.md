@@ -63,6 +63,7 @@ Required test configuration:
 
 ```bash
 PORTAL_BASE_URL=https://localhost:8444
+MCP_BASE_URL=https://localhost
 TOKEN_PROFILE=portal-admin
 LLM_PUBLIC_ALIAS=assistant-dev
 EMBEDDING_QUERY_ALIAS=kb-query
@@ -71,6 +72,8 @@ EMBEDDING_SPACE_ID=nvidia-nemotron-3-embed-1b-float-v1
 EMBEDDING_SPACE_REVISION=1
 EMBEDDING_DIMENSION=2048
 TLS_INSECURE=true
+WORKFLOW_SMOKE_TOOL=workflow_mcp_smoke
+CUSTOMER_360_TOOL=customer_360
 ```
 
 An exported `PORTAL_ACCESS_TOKEN` overrides the committed profile when a fresh
@@ -83,8 +86,18 @@ the file.
 make validate
 make smoke
 make llm
+make workflow-mcp
 make functional
 ```
+
+The `workflow-mcp` lane verifies discovery and invocation of the synchronized
+`workflow_mcp_smoke` and `customer_360` tools. It also verifies that the smoke
+tool rejects missing required input. The default MCP endpoint is
+`https://localhost/mcp`; override `MCP_BASE_URL` when the development
+installation publishes light-gateway at another origin. These tests assume the
+Portal events and gateway configuration for both tools have already been
+synchronized into the target `portal-config-loc` or `light-portal-install`
+environment.
 
 Test the published NVIDIA embedding query and indexing Aliases through the
 gateway with two bounded requests:
@@ -117,7 +130,7 @@ call the configured provider; the default batch performs one functional pass
 followed by three repeated passes.
 
 ```bash
-make batch ALLOW_BILLABLE_TESTS=true VUS=1 DURATION=30s
+make batch ALLOW_BILLABLE_TESTS=true VUS=1 LLM_ITERATIONS=10
 ```
 
 Run every test lane, including the billable LLM performance and embedding
@@ -181,10 +194,12 @@ Run a non-billable `/v1/models` performance smoke test:
 make perf-smoke VUS=2 DURATION=30s
 ```
 
-Run a deliberately small live-provider completion workload:
+Run a deliberately small live-provider completion workload. The default uses
+one VU to execute exactly ten requests; increasing `VUS` changes concurrency,
+not the total request count:
 
 ```bash
-make perf-live ALLOW_BILLABLE_TESTS=true VUS=1 DURATION=30s
+make perf-live ALLOW_BILLABLE_TESTS=true VUS=1 LLM_ITERATIONS=10
 ```
 
 Reports are written below timestamped directories in `reports/runs/` and are

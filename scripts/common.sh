@@ -4,6 +4,7 @@ load_test_environment() {
   local repo_root="${1:?repository root is required}"
   local env_file="${LIGHT_PORTAL_ENV_FILE:-$HOME/.config/lightapi/light-portal.env}"
   local original_portal_base_url="${PORTAL_BASE_URL-}"
+  local original_mcp_base_url="${MCP_BASE_URL-}"
   local original_portal_access_token="${PORTAL_ACCESS_TOKEN-}"
   local original_llm_public_alias="${LLM_PUBLIC_ALIAS-}"
   local original_tls_insecure="${TLS_INSECURE-}"
@@ -17,6 +18,8 @@ load_test_environment() {
   local original_embedding_access_token="${EMBEDDING_ACCESS_TOKEN-}"
   local original_embedding_query_access_token="${EMBEDDING_QUERY_ACCESS_TOKEN-}"
   local original_embedding_index_access_token="${EMBEDDING_INDEX_ACCESS_TOKEN-}"
+  local original_workflow_smoke_tool="${WORKFLOW_SMOKE_TOOL-}"
+  local original_customer_360_tool="${CUSTOMER_360_TOOL-}"
 
   if [[ -f "$env_file" ]]; then
     set -a
@@ -26,6 +29,7 @@ load_test_environment() {
   fi
 
   [[ -n "$original_portal_base_url" ]] && PORTAL_BASE_URL="$original_portal_base_url"
+  [[ -n "$original_mcp_base_url" ]] && MCP_BASE_URL="$original_mcp_base_url"
   [[ -n "$original_portal_access_token" ]] && PORTAL_ACCESS_TOKEN="$original_portal_access_token"
   [[ -n "$original_llm_public_alias" ]] && LLM_PUBLIC_ALIAS="$original_llm_public_alias"
   [[ -n "$original_tls_insecure" ]] && TLS_INSECURE="$original_tls_insecure"
@@ -39,9 +43,14 @@ load_test_environment() {
   [[ -n "$original_embedding_access_token" ]] && EMBEDDING_ACCESS_TOKEN="$original_embedding_access_token"
   [[ -n "$original_embedding_query_access_token" ]] && EMBEDDING_QUERY_ACCESS_TOKEN="$original_embedding_query_access_token"
   [[ -n "$original_embedding_index_access_token" ]] && EMBEDDING_INDEX_ACCESS_TOKEN="$original_embedding_index_access_token"
+  [[ -n "$original_workflow_smoke_tool" ]] && WORKFLOW_SMOKE_TOOL="$original_workflow_smoke_tool"
+  [[ -n "$original_customer_360_tool" ]] && CUSTOMER_360_TOOL="$original_customer_360_tool"
 
   PORTAL_BASE_URL="${PORTAL_BASE_URL:-https://localhost:8444}"
+  MCP_BASE_URL="${MCP_BASE_URL:-https://localhost}"
   LLM_PUBLIC_ALIAS="${LLM_PUBLIC_ALIAS:-assistant-dev}"
+  WORKFLOW_SMOKE_TOOL="${WORKFLOW_SMOKE_TOOL:-workflow_mcp_smoke}"
+  CUSTOMER_360_TOOL="${CUSTOMER_360_TOOL:-customer_360}"
   TLS_INSECURE="${TLS_INSECURE:-true}"
 
   if [[ -z "${PORTAL_ACCESS_TOKEN:-}" ]]; then
@@ -70,7 +79,8 @@ load_test_environment() {
 
   require_value PORTAL_ACCESS_TOKEN
   require_value LLM_PUBLIC_ALIAS
-  export PORTAL_BASE_URL PORTAL_ACCESS_TOKEN LLM_PUBLIC_ALIAS TLS_INSECURE TOKEN_PROFILE
+  export PORTAL_BASE_URL MCP_BASE_URL PORTAL_ACCESS_TOKEN LLM_PUBLIC_ALIAS TLS_INSECURE TOKEN_PROFILE
+  export WORKFLOW_SMOKE_TOOL CUSTOMER_360_TOOL
 }
 
 print_token_profile() {

@@ -6,8 +6,14 @@ const accessToken = required('ACCESS_TOKEN');
 const model = required('LLM_MODEL');
 
 export const options = {
-  vus: Number(__ENV.VUS || 1),
-  duration: __ENV.DURATION || '30s',
+  scenarios: {
+    liveProvider: {
+      executor: 'shared-iterations',
+      vus: Number(__ENV.VUS || 1),
+      iterations: Number(__ENV.LLM_ITERATIONS || 10),
+      maxDuration: '10m',
+    },
+  },
   thresholds: {
     http_req_failed: ['rate<0.01'],
     http_req_duration: ['p(95)<30000'],

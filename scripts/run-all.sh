@@ -21,7 +21,7 @@ echo "The functional and repeat suites call the configured live LLM provider."
 "$repo_root/scripts/validate.sh"
 
 REPORT_DIR="$report_root/functional/hurl" \
-  "$repo_root/scripts/run-functional.sh" tests/smoke tests/llm
+  "$repo_root/scripts/run-functional.sh" tests/smoke tests/llm tests/workflow-mcp
 
 COUNT="$batch_repeat_count" \
 INTERVAL="$batch_repeat_interval" \
