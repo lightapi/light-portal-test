@@ -1,0 +1,14 @@
+{
+  "name": "light-portal-test",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:promotion": "playwright test tests/promotion-ui",
+    "test:promotion:list": "playwright test tests/promotion-ui --list",
+    "test:runner": "node --test runner/*.test.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0"
+  }
+}

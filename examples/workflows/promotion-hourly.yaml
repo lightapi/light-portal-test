@@ -1,0 +1,39 @@
+document:
+  dsl: "1.0.3"
+  namespace: light-portal
+  name: promotion-hourly-test
+  version: "1.0.0"
+  title: Hourly promotion canary test
+  summary: Starts the asynchronous light-portal-test promotion suite.
+  tags:
+    testType: canary
+    owner: light-portal
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      properties:
+        correlationId:
+          type: string
+      required:
+        - correlationId
+do:
+  - triggerPromotionTest:
+      call: http
+      with:
+        method: POST
+        endpoint:
+          uri: http://light-portal-test-runner:8090/test-runs
+        headers:
+          Content-Type: application/json
+        body:
+          suite: promotion-hourly
+          correlationId: "${ .correlationId }"
+        output: content
+      metadata:
+        endpointRef: promotion-test-runner
+      idempotencyKey: "promotion-hourly:${ .correlationId }"
+      export:
+        as:
+          testRun: .output

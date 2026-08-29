@@ -9,8 +9,7 @@ interface.
 
 - Hurl runs functional HTTP tests and repeated smoke tests.
 - k6 runs controlled smoke, performance, soak, and later WebSocket workloads.
-- Browser tests are intentionally deferred until a Portal UI scenario requires
-  them.
+- Playwright runs the promotion UI canary in a real Chromium browser.
 
 Live LLM tests call billable providers. The ordinary functional lane sends only
 a small number of requests. Performance tests that generate completions require
@@ -23,6 +22,7 @@ an explicit `ALLOW_BILLABLE_TESTS=true` opt-in.
   [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) natively. Native
   binaries take precedence over containers.
 - Bash, `curl`, and `jq`
+- Node.js 20 or newer for the Playwright promotion lane
 
 The default container images are:
 
@@ -89,6 +89,156 @@ make llm
 make workflow-mcp
 make functional
 ```
+
+## Promotion automation
+
+Promotion testing combines a read-only Hurl preflight with a real browser
+journey. The browser promotes one configured Platform, Pipeline, and Product
+Version in dependency order, waits for each target projection to complete,
+rechecks the durable projection evidence, and verifies that a repeated execute
+is an idempotent replay. A separate browser case verifies that **Select all N
+matching records** spans server-side pagination instead of selecting only the
+visible ten-row page.
+
+The suite never creates rows directly in projection tables. Create and update
+canary records through Portal commands or the corresponding admin pages.
+
+### Canary prerequisites
+
+Use a dedicated source/target host pair. The automation user needs `portal.w`
+and host-admin access to both hosts. The source needs:
+
+- at least 11 active records of the configured pagination canary type (Config
+  by default), so server-side selection crosses the default ten-row page;
+- one uniquely identifiable Platform;
+- one Pipeline whose dependencies exist in the target after Platform
+  promotion; and
+- one Product Version whose Platform and Pipeline dependencies exist in the
+  target after the first two promotions.
+
+Add the following values only to the private environment file selected by
+`LIGHT_PORTAL_ENV_FILE` (by default
+`~/.config/lightapi/light-portal.env`):
+
+```bash
+PROMOTION_UI_BASE_URL=https://localhost:3000
+PROMOTION_API_BASE_URL=https://localhost:3000
+PROMOTION_SOURCE_HOST_ID=<source-host-uuid>
+PROMOTION_SOURCE_HOST_LABEL='source-domain / source-subdomain'
+PROMOTION_TARGET_HOST_ID=<target-host-uuid>
+PROMOTION_TARGET_HOST_LABEL='target-domain / target-subdomain'
+PROMOTION_PLATFORM_MATCH='unique visible platform text'
+PROMOTION_PIPELINE_MATCH='pipeline name shown in the Pipeline table'
+PROMOTION_PIPELINE_VERSION='pipeline version shown in the Pipeline table'
+PROMOTION_PRODUCT_ID='product ID shown in the Product Version table'
+PROMOTION_PRODUCT_VERSION='version shown in the Product Version table'
+PROMOTION_SELECTION_ENTITY_TYPE=config
+PROMOTION_SELECTION_ENTITY_LABEL=Config
+PROMOTION_E2E_EMAIL=<dedicated-test-user>
+PROMOTION_E2E_PASSWORD=<secret>
+PROMOTION_E2E_USER_TYPE=Employee
+```
+
+The host labels must exactly match the Portal select options. The Platform
+match must identify exactly one visible row. Pipeline uses its visible name
+plus version as a composite identity, and Product Version uses the visible
+Product ID plus Version. Do not use hidden UUIDs for either entity.
+
+Install the pinned test dependency and browser once:
+
+```bash
+npm ci
+npx playwright install chromium
+```
+
+The P4-P6 lifecycle assertions call
+`lightapi.net/user/promotionRecovery/0.1.0`. A preserved local database must
+contain both the endpoint registration and its portal gateway access-control
+rule. Apply events 13 and 14 from `event-importer/events/local/README.md`,
+publish a new current `loc` portal-gateway snapshot, and restart
+`light-gateway` before running this suite.
+
+Run the lanes with:
+
+```bash
+make promotion-api
+make promotion-ui
+make promotion-hourly
+```
+
+`promotion-api` validates history access and exports the configured Platform,
+Pipeline, and Product Version without modifying the target; it requires a
+current `PORTAL_ACCESS_TOKEN`. `promotion-ui` authenticates with the configured
+browser user and performs the browser journey. `promotion-hourly` always runs
+the browser lane and, in the default `PROMOTION_API_PREFLIGHT=auto` mode, runs
+Hurl only when an explicit access token is configured. Use `required` to make
+Hurl mandatory or `skip` to disable it. Reports are written below a timestamped
+`reports/runs/` directory.
+
+The scheduled canary does not clean the target host before or after promotion.
+It executes with `orphanAction: keep`, so target-only records are preserved.
+On subsequent runs, an unchanged source/target entity is planned as `NOOP` and
+no new event is appended; changed mutable fields are promoted as updates. The
+suite also replays the same completed plan once to verify its idempotent result.
+
+For a local interactive login, omit `PROMOTION_REUSE_AUTH_STATE` and provide
+the test email/password. For an unattended runner, either keep those secrets
+in its secret store or mount a short-lived Playwright state file and set:
+
+```bash
+PROMOTION_AUTH_STATE_FILE=/run/secrets/portal-playwright-state.json
+PROMOTION_REUSE_AUTH_STATE=true
+```
+
+The authentication state contains reusable cookies. Never commit it or publish
+it as a test artifact. Playwright tracing is disabled because traces can also
+capture authenticated cookies and request headers.
+
+### Scheduler-triggered runner
+
+The asynchronous runner lets `light-workflow` trigger the suite without
+waiting for the complete browser run:
+
+```bash
+PROMOTION_RUNNER_BEARER_TOKEN=<secret> make runner
+```
+
+Its API is:
+
+```text
+GET  /healthz
+POST /test-runs
+GET  /test-runs/{runId}
+```
+
+Example trigger:
+
+```bash
+curl --fail-with-body \
+  -H "Authorization: Bearer $PROMOTION_RUNNER_BEARER_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: promotion-hourly-2026-08-28T20' \
+  --data '{"suite":"promotion-hourly","correlationId":"promotion-hourly-2026-08-28T20"}' \
+  http://127.0.0.1:8090/test-runs
+```
+
+The call returns HTTP 202 with a `runId`. Only one promotion run is admitted at
+a time so overlapping schedules cannot mutate the canary target concurrently.
+Repeated calls with the same idempotency key return the original run.
+
+For deployment, build `Dockerfile.playwright` and mount the private environment
+file or inject its values from the platform secret store. A non-loopback runner
+refuses to start unless a bearer token is configured or
+`PROMOTION_RUNNER_TRUST_WORKFLOW_HEADERS=true` is explicitly selected. The
+latter mode requires both workflow Authorization headers and must only be used
+on a network where direct access is restricted to `light-workflow`.
+
+The workflow example is
+[`examples/workflows/promotion-hourly.yaml`](examples/workflows/promotion-hourly.yaml).
+Register its `promotion-test-runner` endpoint target with POST permission, then
+have Portal Scheduler invoke the workflow with a unique `correlationId` hourly
+or daily. The workflow receives HTTP 202 immediately; test completion and
+failure alerting are owned by the runner/monitoring system.
 
 The `workflow-mcp` lane verifies discovery and invocation of the synchronized
 `workflow_mcp_smoke` and `customer_360` tools. It also verifies that the smoke

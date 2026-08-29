@@ -6,6 +6,7 @@ load_test_environment() {
   local original_portal_base_url="${PORTAL_BASE_URL-}"
   local original_mcp_base_url="${MCP_BASE_URL-}"
   local original_portal_access_token="${PORTAL_ACCESS_TOKEN-}"
+  local original_portal_access_token_source="${PORTAL_ACCESS_TOKEN_SOURCE-}"
   local original_llm_public_alias="${LLM_PUBLIC_ALIAS-}"
   local original_tls_insecure="${TLS_INSECURE-}"
   local original_token_profile="${TOKEN_PROFILE-}"
@@ -31,6 +32,7 @@ load_test_environment() {
   [[ -n "$original_portal_base_url" ]] && PORTAL_BASE_URL="$original_portal_base_url"
   [[ -n "$original_mcp_base_url" ]] && MCP_BASE_URL="$original_mcp_base_url"
   [[ -n "$original_portal_access_token" ]] && PORTAL_ACCESS_TOKEN="$original_portal_access_token"
+  [[ -n "$original_portal_access_token_source" ]] && PORTAL_ACCESS_TOKEN_SOURCE="$original_portal_access_token_source"
   [[ -n "$original_llm_public_alias" ]] && LLM_PUBLIC_ALIAS="$original_llm_public_alias"
   [[ -n "$original_tls_insecure" ]] && TLS_INSECURE="$original_tls_insecure"
   [[ -n "$original_token_profile" ]] && TOKEN_PROFILE="$original_token_profile"
@@ -73,14 +75,42 @@ load_test_environment() {
       return 2
     fi
     PORTAL_ACCESS_TOKEN="$(tr -d '\r\n' <"$token_file")"
+    PORTAL_ACCESS_TOKEN_SOURCE="fixture"
   else
     TOKEN_PROFILE="${TOKEN_PROFILE:-environment}"
+    PORTAL_ACCESS_TOKEN_SOURCE="${PORTAL_ACCESS_TOKEN_SOURCE:-environment}"
   fi
 
   require_value PORTAL_ACCESS_TOKEN
   require_value LLM_PUBLIC_ALIAS
-  export PORTAL_BASE_URL MCP_BASE_URL PORTAL_ACCESS_TOKEN LLM_PUBLIC_ALIAS TLS_INSECURE TOKEN_PROFILE
+  export PORTAL_BASE_URL MCP_BASE_URL PORTAL_ACCESS_TOKEN PORTAL_ACCESS_TOKEN_SOURCE
+  export LLM_PUBLIC_ALIAS TLS_INSECURE TOKEN_PROFILE
   export WORKFLOW_SMOKE_TOOL CUSTOMER_360_TOOL
+}
+
+require_current_access_token() {
+  local token="${PORTAL_ACCESS_TOKEN:?PORTAL_ACCESS_TOKEN is required}"
+  local payload
+  payload="$(printf '%s' "$token" | cut -d. -f2)"
+  if [[ -z "$payload" || "$payload" == "$token" ]]; then
+    return
+  fi
+
+  local remainder=$(( ${#payload} % 4 ))
+  case "$remainder" in
+    0) ;;
+    2) payload+='==' ;;
+    3) payload+='=' ;;
+    *) return ;;
+  esac
+  local claims
+  claims="$(printf '%s' "$payload" | tr '_-' '/+' | base64 -d 2>/dev/null)" || return
+  local expires_at
+  expires_at="$(jq -er '.exp // empty' <<<"$claims" 2>/dev/null)" || return
+  if (( expires_at <= $(date +%s) )); then
+    echo "PORTAL_ACCESS_TOKEN expired at $(date -u -d "@$expires_at" '+%Y-%m-%dT%H:%M:%SZ'). Supply a current token in the private environment file." >&2
+    return 2
+  fi
 }
 
 print_token_profile() {

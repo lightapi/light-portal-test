@@ -33,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate smoke llm workflow-mcp embeddings functional repeat perf-smoke perf-live batch all
+.PHONY: validate smoke llm workflow-mcp embeddings promotion-api promotion-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
@@ -49,6 +49,18 @@ workflow-mcp:
 
 embeddings:
 	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) ./scripts/run-embeddings.sh
+
+promotion-api:
+	./scripts/run-promotion-api.sh
+
+promotion-ui:
+	./scripts/run-promotion-ui.sh
+
+promotion-hourly:
+	./scripts/run-promotion-hourly.sh
+
+runner:
+	node runner/server.mjs
 
 functional:
 	./scripts/run-functional.sh tests/smoke tests/llm tests/workflow-mcp

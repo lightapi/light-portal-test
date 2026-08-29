@@ -1,0 +1,10 @@
+.git
+.github
+.gitnexus
+.claude
+node_modules
+reports
+test-results
+playwright-report
+*.local.env
+.env

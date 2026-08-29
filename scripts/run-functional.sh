@@ -6,6 +6,7 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/common.sh"
 
 load_test_environment "$repo_root"
+require_current_access_token
 print_token_profile
 
 if [[ $# -eq 0 ]]; then
@@ -57,6 +58,13 @@ args=(
   --variable "embedding_dimension=${EMBEDDING_DIMENSION:-2048}"
   --variable "workflow_smoke_tool=$WORKFLOW_SMOKE_TOOL"
   --variable "customer_360_tool=$CUSTOMER_360_TOOL"
+  --variable "promotion_api_base_url=${PROMOTION_API_BASE_URL:-$PORTAL_BASE_URL}"
+  --variable "promotion_source_host_id=${PROMOTION_SOURCE_HOST_ID:-}"
+  --variable "promotion_target_host_id=${PROMOTION_TARGET_HOST_ID:-}"
+  --variable "promotion_platform_match=${PROMOTION_PLATFORM_MATCH:-}"
+  --variable "promotion_pipeline_match=${PROMOTION_PIPELINE_MATCH:-}"
+  --variable "promotion_product_id=${PROMOTION_PRODUCT_ID:-}"
+  --variable "promotion_product_version=${PROMOTION_PRODUCT_VERSION:-}"
   --variable "run_id=$run_id"
 )
 if tls_is_insecure; then

@@ -15,8 +15,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install --yes shellcheck
+
+      - name: Install Node dependencies
+        run: npm ci --ignore-scripts
 
       - name: Validate repository
         run: make validate

@@ -1,0 +1,25 @@
+FROM mcr.microsoft.com/playwright:v1.62.0-noble
+
+ARG HURL_VERSION=8.0.1
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && architecture="$(dpkg --print-architecture)" \
+    && curl -fsSLo /tmp/hurl.deb \
+      "https://github.com/Orange-OpenSource/hurl/releases/download/${HURL_VERSION}/hurl_${HURL_VERSION}_${architecture}.deb" \
+    && apt-get install -y --no-install-recommends /tmp/hurl.deb \
+    && rm -f /tmp/hurl.deb \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN chmod +x scripts/*.sh && chown -R pwuser:pwuser /work
+
+USER pwuser
+ENV PROMOTION_RUNNER_HOST=0.0.0.0
+ENV PROMOTION_RUNNER_PORT=8090
+EXPOSE 8090
+CMD ["node", "runner/server.mjs"]
