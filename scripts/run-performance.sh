@@ -29,6 +29,7 @@ case "$profile" in
 esac
 
 load_test_environment "$repo_root"
+require_current_access_token
 print_token_profile
 report_dir="${REPORT_DIR:-$repo_root/reports/k6}"
 if [[ "$report_dir" != /* ]]; then

@@ -21,6 +21,13 @@ load_test_environment() {
   local original_embedding_index_access_token="${EMBEDDING_INDEX_ACCESS_TOKEN-}"
   local original_workflow_smoke_tool="${WORKFLOW_SMOKE_TOOL-}"
   local original_customer_360_tool="${CUSTOMER_360_TOOL-}"
+  local original_portal_auto_login="${PORTAL_AUTO_LOGIN-}"
+  local original_portal_token_min_ttl_seconds="${PORTAL_TOKEN_MIN_TTL_SECONDS-}"
+  local original_promotion_ui_base_url="${PROMOTION_UI_BASE_URL-}"
+  local original_promotion_auth_state_file="${PROMOTION_AUTH_STATE_FILE-}"
+  local original_promotion_e2e_email="${PROMOTION_E2E_EMAIL-}"
+  local original_promotion_e2e_password="${PROMOTION_E2E_PASSWORD-}"
+  local original_promotion_e2e_user_type="${PROMOTION_E2E_USER_TYPE-}"
 
   if [[ -f "$env_file" ]]; then
     set -a
@@ -47,6 +54,13 @@ load_test_environment() {
   [[ -n "$original_embedding_index_access_token" ]] && EMBEDDING_INDEX_ACCESS_TOKEN="$original_embedding_index_access_token"
   [[ -n "$original_workflow_smoke_tool" ]] && WORKFLOW_SMOKE_TOOL="$original_workflow_smoke_tool"
   [[ -n "$original_customer_360_tool" ]] && CUSTOMER_360_TOOL="$original_customer_360_tool"
+  [[ -n "$original_portal_auto_login" ]] && PORTAL_AUTO_LOGIN="$original_portal_auto_login"
+  [[ -n "$original_portal_token_min_ttl_seconds" ]] && PORTAL_TOKEN_MIN_TTL_SECONDS="$original_portal_token_min_ttl_seconds"
+  [[ -n "$original_promotion_ui_base_url" ]] && PROMOTION_UI_BASE_URL="$original_promotion_ui_base_url"
+  [[ -n "$original_promotion_auth_state_file" ]] && PROMOTION_AUTH_STATE_FILE="$original_promotion_auth_state_file"
+  [[ -n "$original_promotion_e2e_email" ]] && PROMOTION_E2E_EMAIL="$original_promotion_e2e_email"
+  [[ -n "$original_promotion_e2e_password" ]] && PROMOTION_E2E_PASSWORD="$original_promotion_e2e_password"
+  [[ -n "$original_promotion_e2e_user_type" ]] && PROMOTION_E2E_USER_TYPE="$original_promotion_e2e_user_type"
 
   PORTAL_BASE_URL="${PORTAL_BASE_URL:-https://localhost:8444}"
   MCP_BASE_URL="${MCP_BASE_URL:-https://localhost}"
@@ -54,6 +68,31 @@ load_test_environment() {
   WORKFLOW_SMOKE_TOOL="${WORKFLOW_SMOKE_TOOL:-workflow_mcp_smoke}"
   CUSTOMER_360_TOOL="${CUSTOMER_360_TOOL:-customer_360}"
   TLS_INSECURE="${TLS_INSECURE:-true}"
+  PORTAL_AUTO_LOGIN="${PORTAL_AUTO_LOGIN:-auto}"
+  PORTAL_TOKEN_MIN_TTL_SECONDS="${PORTAL_TOKEN_MIN_TTL_SECONDS:-300}"
+
+  case "$PORTAL_AUTO_LOGIN" in
+    auto)
+      if [[ -n "${PROMOTION_E2E_EMAIL:-}" && -n "${PROMOTION_E2E_PASSWORD:-}" ]]; then
+        require_command node
+        PORTAL_ACCESS_TOKEN="$(node "$repo_root/runner/refresh-portal-token.mjs")"
+        PORTAL_ACCESS_TOKEN_SOURCE="ui-login"
+        TOKEN_PROFILE="ui-login"
+      fi
+      ;;
+    true|1)
+      require_command node
+      PORTAL_ACCESS_TOKEN="$(node "$repo_root/runner/refresh-portal-token.mjs")"
+      PORTAL_ACCESS_TOKEN_SOURCE="ui-login"
+      TOKEN_PROFILE="ui-login"
+      ;;
+    false|0)
+      ;;
+    *)
+      echo "PORTAL_AUTO_LOGIN must be auto, true, or false" >&2
+      return 2
+      ;;
+  esac
 
   if [[ -z "${PORTAL_ACCESS_TOKEN:-}" ]]; then
     require_command jq
@@ -86,6 +125,7 @@ load_test_environment() {
   export PORTAL_BASE_URL MCP_BASE_URL PORTAL_ACCESS_TOKEN PORTAL_ACCESS_TOKEN_SOURCE
   export LLM_PUBLIC_ALIAS TLS_INSECURE TOKEN_PROFILE
   export WORKFLOW_SMOKE_TOOL CUSTOMER_360_TOOL
+  export PORTAL_AUTO_LOGIN PORTAL_TOKEN_MIN_TTL_SECONDS
 }
 
 require_current_access_token() {
@@ -108,7 +148,7 @@ require_current_access_token() {
   local expires_at
   expires_at="$(jq -er '.exp // empty' <<<"$claims" 2>/dev/null)" || return
   if (( expires_at <= $(date +%s) )); then
-    echo "PORTAL_ACCESS_TOKEN expired at $(date -u -d "@$expires_at" '+%Y-%m-%dT%H:%M:%SZ'). Supply a current token in the private environment file." >&2
+    echo "PORTAL_ACCESS_TOKEN expired at $(date -u -d "@$expires_at" '+%Y-%m-%dT%H:%M:%SZ'). Configure UI credentials or supply a current token." >&2
     return 2
   fi
 }

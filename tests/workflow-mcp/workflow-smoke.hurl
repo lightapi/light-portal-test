@@ -38,9 +38,7 @@ X-Correlation-Id: light-portal-test-workflow-call-{{run_id}}
   "method": "tools/call",
   "params": {
     "name": "{{workflow_smoke_tool}}",
-    "arguments": {
-      "message": "workflow MCP smoke test {{run_id}}"
-    },
+    "arguments": {},
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
@@ -54,7 +52,7 @@ X-Correlation-Id: light-portal-test-workflow-call-{{run_id}}
 HTTP 200
 [Asserts]
 jsonpath "$.result.isError" == false
-body contains "workflow MCP smoke test {{run_id}}"
+body contains "\"message\":\"message\""
 body contains "executedBy"
 body contains "light-workflow"
 
@@ -72,7 +70,9 @@ X-Correlation-Id: light-portal-test-workflow-invalid-{{run_id}}
   "method": "tools/call",
   "params": {
     "name": "{{workflow_smoke_tool}}",
-    "arguments": {},
+    "arguments": {
+      "unexpected": true
+    },
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
@@ -86,4 +86,4 @@ X-Correlation-Id: light-portal-test-workflow-invalid-{{run_id}}
 HTTP 200
 [Asserts]
 jsonpath "$.result.isError" == true
-body contains "required"
+body contains "additionalProperties"

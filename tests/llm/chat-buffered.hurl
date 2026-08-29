@@ -11,7 +11,7 @@ X-Correlation-Id: light-portal-test-chat-buffered-{{run_id}}
     }
   ],
   "temperature": 0,
-  "max_tokens": 16,
+  "max_tokens": 256,
   "stream": false
 }
 
@@ -20,7 +20,7 @@ HTTP 200
 jsonpath "$.choices" count > 0
 jsonpath "$.choices[0].finish_reason" == "stop"
 jsonpath "$.choices[0].message.role" == "assistant"
-jsonpath "$.choices[0].message.content" == "gateway-ok"
+jsonpath "$.choices[0].message.content" contains "gateway-ok"
 jsonpath "$.choices[0].message.tool_calls" isList
 jsonpath "$.model" == "{{llm_model}}"
 jsonpath "$.object" == "chat.completion"

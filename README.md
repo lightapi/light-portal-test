@@ -76,9 +76,16 @@ WORKFLOW_SMOKE_TOOL=workflow_mcp_smoke
 CUSTOMER_360_TOOL=customer_360
 ```
 
-An exported `PORTAL_ACCESS_TOKEN` overrides the committed profile when a fresh
-or ad hoc token is useful. Environment variables override values loaded from
-the file.
+When `PROMOTION_E2E_EMAIL` and `PROMOTION_E2E_PASSWORD` are configured, the
+runners authenticate through the Portal UI and use the resulting access token
+without writing it to the environment file. A cached browser token is reused
+only while it has at least five minutes remaining; otherwise the runner signs
+in again. Set `PORTAL_AUTO_LOGIN=false` to disable this behavior or adjust the
+margin with `PORTAL_TOKEN_MIN_TTL_SECONDS`.
+
+Without UI credentials, an exported `PORTAL_ACCESS_TOKEN` overrides the
+committed profile when a fresh or ad hoc token is useful. Environment variables
+override values loaded from the file.
 
 ## Running tests
 

@@ -10,7 +10,7 @@ X-Correlation-Id: light-portal-test-chat-streaming-{{run_id}}
       "content": "Count from one to three."
     }
   ],
-  "max_tokens": 32,
+  "max_tokens": 256,
   "stream": true
 }
 

@@ -7,9 +7,25 @@ function stateHasUserId(authFile) {
   if (!fs.existsSync(authFile)) return false;
   try {
     const state = JSON.parse(fs.readFileSync(authFile, 'utf8'));
-    return state.cookies?.some((cookie) => cookie.name === 'userId');
+    return state.cookies?.some((cookie) => cookie.name === 'userId')
+      && readCurrentAccessToken(authFile) !== null;
   } catch {
     return false;
+  }
+}
+
+export function readCurrentAccessToken(authFile, minimumTtlSeconds = 0) {
+  if (!fs.existsSync(authFile)) return null;
+  try {
+    const state = JSON.parse(fs.readFileSync(authFile, 'utf8'));
+    const token = state.cookies?.find((cookie) => cookie.name === 'accessToken')?.value;
+    if (!token) return null;
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+    if (!Number.isFinite(payload.exp)) return null;
+    if (payload.exp <= Math.floor(Date.now() / 1000) + minimumTtlSeconds) return null;
+    return token;
+  } catch {
+    return null;
   }
 }
 
