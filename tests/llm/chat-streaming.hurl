@@ -7,9 +7,10 @@ X-Correlation-Id: light-portal-test-chat-streaming-{{run_id}}
   "messages": [
     {
       "role": "user",
-      "content": "Count from one to three."
+      "content": "Reply with exactly: stream-ok"
     }
   ],
+  "temperature": 0,
   "max_tokens": 256,
   "stream": true
 }
