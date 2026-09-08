@@ -6,7 +6,9 @@
   "scripts": {
     "test:promotion": "playwright test tests/promotion-ui",
     "test:promotion:list": "playwright test tests/promotion-ui --list",
-    "test:runner": "node --test runner/*.test.mjs"
+    "test:runner": "node --test runner/*.test.mjs",
+    "test:chat": "playwright test --config playwright.chat.config.js",
+    "test:chat:list": "playwright test --config playwright.chat.config.js --list"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0"

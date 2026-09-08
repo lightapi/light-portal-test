@@ -389,3 +389,63 @@ GitHub-hosted runners cannot reach a developer's `portal-config-loc` instance.
 The initial workflow validates repository structure and shell/JavaScript syntax
 only. Runtime tests should run locally or on a self-hosted runner until the
 complete Portal stack can be started ephemerally in CI.
+
+## GenAI Chat browser smoke test
+
+`npm run test:chat` exercises the real `/app/genai/chat` UI: Portal login,
+Tech Support Agent selection, WebSocket session admission, message submission,
+turn acceptance, an LLM reply containing a unique per-run marker, and rendering
+of that reply. It fails on Agent error frames (including session-limit errors
+and gateway 403), rather than counting a successful socket upgrade as success.
+No backend or model is mocked. Each run can incur one model request; retries
+are disabled. This is a functional smoke test, not a concurrency/load test.
+
+```bash
+npm ci
+npx playwright install chromium
+export CHAT_E2E_EMAIL='steve.hu@lightapi.net'
+read -rsp 'Portal password: ' CHAT_E2E_PASSWORD; echo
+export CHAT_E2E_PASSWORD
+npm run test:chat
+```
+
+Defaults target `portal-config-loc/all-in-lt`: UI `https://localhost:3000`,
+agent option `Tech Support Agent Dev · dev`. Override with `CHAT_UI_BASE_URL`
+and `CHAT_AGENT_LABEL` (exact visible option label). Alternatively set
+`CHAT_AUTH_STATE_FILE` to an existing, unexpired Playwright Portal storage-state
+file; an API bearer token alone is not a browser login. Credentials are never
+checked into the test. Local self-signed browser certificates are accepted by
+default; use `TLS_INSECURE=false` with trusted certificates.
+
+The suite disconnects in `finally` and retains only its scoped session IDs in
+`.playwright-auth/chat-session.json` (ignored, mode 0600) for reuse across runs.
+Disconnect does not end the durable server session. Do not run concurrent copies
+against the same session file. Set `CHAT_SESSION_FILE` for a dedicated test
+identity; remove that file to start fresh after session expiry or a policy
+replacement. Existing sessions then expire under the Agent's normal policy.
+The test does not modify policy, delete database rows, or hide failed resumes.
+
+List without contacting the deployment: `npm run test:chat:list`.
+JUnit and failure artifacts are under `reports/genai-chat/`. Traces and videos
+are disabled to avoid recording authentication handshakes. A pass requires a
+working gateway binding, model route, provider credential, and provider capacity;
+publication or connectivity failures deliberately fail this test.
+
+Run the Chat UI suite through Make, like `make promotion-ui`:
+
+```bash
+make genai-chat-ui
+```
+
+The Make wrapper loads `LIGHT_PORTAL_ENV_FILE` (default:
+`~/.config/lightapi/light-portal.env`). Set `CHAT_E2E_EMAIL` and
+`CHAT_E2E_PASSWORD` there, or supply `CHAT_AUTH_STATE_FILE`. For convenience it
+also accepts the existing `PROMOTION_E2E_EMAIL` / `PROMOTION_E2E_PASSWORD`
+credentials and `PROMOTION_UI_BASE_URL` when the corresponding Chat settings
+are absent. Explicit Chat environment overrides take precedence.
+
+`make all` now runs this suite after the existing batch and embedding suites.
+Failures propagate to Make. As with other optional billable checks,
+`make all ALLOW_BILLABLE_TESTS=false` skips the Chat UI suite; the explicit
+`make genai-chat-ui` target runs it directly. Earlier suite failures stop
+`make all` before Chat is reached. Reports remain in `reports/genai-chat/`.

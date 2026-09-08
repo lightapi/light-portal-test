@@ -33,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate smoke llm workflow-mcp embeddings promotion-api promotion-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
+.PHONY: validate smoke llm workflow-mcp embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
@@ -55,6 +55,9 @@ promotion-api:
 
 promotion-ui:
 	./scripts/run-promotion-ui.sh
+
+genai-chat-ui:
+	./scripts/run-genai-chat-ui.sh
 
 promotion-hourly:
 	./scripts/run-promotion-hourly.sh
@@ -88,6 +91,7 @@ all:
 	$(MAKE) batch ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)
 ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
 	$(MAKE) embeddings ALLOW_BILLABLE_TESTS=true
+	$(MAKE) genai-chat-ui
 else
-	@echo "Skipping billable embedding tests because ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)."
+	@echo "Skipping billable embedding and GenAI Chat UI tests because ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)."
 endif
