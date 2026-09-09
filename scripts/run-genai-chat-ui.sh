@@ -13,6 +13,7 @@ done
 env_file="${LIGHT_PORTAL_ENV_FILE:-$HOME/.config/lightapi/light-portal.env}"
 if [[ -f "$env_file" ]]; then
   set -a
+  # shellcheck disable=SC1090
   source "$env_file"
   set +a
 fi
