@@ -20,6 +20,8 @@ echo "Batch reports: $report_root"
 echo "The functional and repeat suites call the configured live LLM provider."
 "$repo_root/scripts/validate.sh"
 
+REPORT_DIR="$report_root/mcp" "$repo_root/scripts/run-mcp.sh"
+
 REPORT_DIR="$report_root/functional/hurl" \
   "$repo_root/scripts/run-functional.sh" tests/smoke tests/llm tests/workflow-mcp
 

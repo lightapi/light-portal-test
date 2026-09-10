@@ -38,7 +38,7 @@ test('Tech Support: UI login, session admission, and real LLM reply', async ({ p
       const email = process.env.CHAT_E2E_EMAIL;
       const password = process.env.CHAT_E2E_PASSWORD;
       if (!email || !password) throw new Error('Set CHAT_E2E_EMAIL and CHAT_E2E_PASSWORD, or CHAT_AUTH_STATE_FILE with valid Portal browser authentication.');
-      await page.getByRole('button', { name: 'Open profile menu' }).click();
+      await page.getByRole('button', { name: /^(Account menu|Open profile menu)$/ }).click();
       await page.getByText('Sign In', { exact: true }).click();
       await page.getByLabel('Email').fill(email);
       await page.getByLabel('Password').fill(password);

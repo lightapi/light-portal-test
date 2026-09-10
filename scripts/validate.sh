@@ -36,7 +36,7 @@ for file in "${hurl_files[@]}"; do
 done
 
 mapfile -t k6_files < <(find "$repo_root/performance" -type f -name '*.js' -print | sort)
-mapfile -t node_files < <(find "$repo_root/runner" "$repo_root/tests/promotion-ui" -type f \( -name '*.js' -o -name '*.mjs' \) -print | sort)
+mapfile -t node_files < <(find "$repo_root/runner" "$repo_root/tests/promotion-ui" "$repo_root/tests/mcp" -type f \( -name '*.js' -o -name '*.mjs' \) -print | sort)
 if command -v node >/dev/null 2>&1; then
   for file in "${k6_files[@]}"; do
     node --check "$file"
@@ -44,7 +44,7 @@ if command -v node >/dev/null 2>&1; then
   for file in "${node_files[@]}"; do
     node --check "$file"
   done
-  node --test "$repo_root"/runner/*.test.mjs
+  node --test "$repo_root"/runner/*.test.mjs "$repo_root"/tests/mcp/*.test.mjs
   if [[ -x "$repo_root/node_modules/.bin/playwright" ]]; then
     PROMOTION_SOURCE_HOST_ID=00000000-0000-0000-0000-000000000001 \
     PROMOTION_SOURCE_HOST_LABEL='source / canary' \

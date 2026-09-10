@@ -61,7 +61,7 @@ export default async function authenticate(config) {
     });
     const authenticated = (await context.cookies()).some((cookie) => cookie.name === 'userId');
     if (!authenticated) {
-      await page.getByRole('button', { name: 'Open profile menu' }).click();
+      await page.getByRole('button', { name: /^(Account menu|Open profile menu)$/ }).click();
       await page.getByText('Sign In', { exact: true }).click();
       await page.getByLabel('Email').fill(process.env.PROMOTION_E2E_EMAIL);
       await page.getByLabel('Password').fill(process.env.PROMOTION_E2E_PASSWORD);

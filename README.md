@@ -8,6 +8,9 @@ interface.
 ## Test lanes
 
 - Hurl runs functional HTTP tests and repeated smoke tests.
+- `make mcp` runs the non-billable daily MCP protocol suite, also included in
+  `make all`. See [MCP coverage and setup](tests/mcp/README.md).
+- `make mcp-source` runs the complementary sibling-repository regression tests.
 - k6 runs controlled smoke, performance, soak, and later WebSocket workloads.
 - Playwright runs the promotion UI canary in a real Chromium browser.
 

@@ -33,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate smoke llm workflow-mcp embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
+.PHONY: validate smoke llm mcp mcp-source workflow-mcp embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
@@ -43,6 +43,12 @@ smoke:
 
 llm:
 	./scripts/run-functional.sh tests/llm
+
+mcp:
+	./scripts/run-mcp.sh
+
+mcp-source:
+	./scripts/run-mcp-source.sh
 
 workflow-mcp:
 	./scripts/run-functional.sh tests/workflow-mcp
