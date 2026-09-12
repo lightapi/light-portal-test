@@ -1,0 +1,2 @@
+PyYAML==6.0.2
+websocket-client==1.8.0

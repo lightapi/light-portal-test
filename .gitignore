@@ -11,3 +11,6 @@ test-results/
 .claude/
 AGENTS.md
 CLAUDE.md
+
+.venv-claude-e2e/
+__pycache__/

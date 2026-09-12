@@ -452,3 +452,11 @@ Failures propagate to Make. As with other optional billable checks,
 `make all ALLOW_BILLABLE_TESTS=false` skips the Chat UI suite; the explicit
 `make genai-chat-ui` target runs it directly. Earlier suite failures stop
 `make all` before Chat is reached. Reports remain in `reports/genai-chat/`.
+
+### Claude personal worker E2E
+
+`make claude-personal-e2e` runs the six-turn native Claude coding/review session
+suite against `portal-config-loc/all-in-lt`, with readiness checks, overlap
+protection, a timeout, and timestamped JSON/JUnit reports. It consumes native
+subscription usage and is an explicit standalone target. See
+[setup, configuration, coverage and daily scheduling](tests/claude-personal/README.md).

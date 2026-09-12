@@ -101,3 +101,8 @@ ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
 else
 	@echo "Skipping billable embedding and GenAI Chat UI tests because ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)."
 endif
+
+# Explicit invocation consumes native Claude subscription usage.
+.PHONY: claude-personal-e2e
+claude-personal-e2e:
+	./scripts/run-claude-personal-e2e.sh

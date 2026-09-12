@@ -16,6 +16,7 @@ for file in "$repo_root"/scripts/run-*.sh; do
 done
 
 "$repo_root/scripts/validate-token-fixtures.sh"
+python3 -B -m unittest discover -s "$repo_root/tests/claude-personal" -p 'test_*.py'
 
 if command -v shellcheck >/dev/null 2>&1; then
   shellcheck -x -P "$repo_root/scripts" "${shell_files[@]}"
