@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:workspace": "node --test tests/workspace-qualification/*.test.mjs",
+    "qualify:workspace": "node scripts/run-workspace-qualification.mjs",
+    "qualify:snapshot": "bash scripts/run-snapshot-qualification.sh",
     "test:promotion": "playwright test tests/promotion-ui",
     "test:promotion:list": "playwright test tests/promotion-ui --list",
     "test:runner": "node --test runner/*.test.mjs",

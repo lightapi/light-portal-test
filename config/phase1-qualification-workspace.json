@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "phase1-qualification",
+  "hostId": "01964b05-552a-7c4b-9184-6857e7f3dc5f",
+  "agents": [
+    "com.networknt.agent.claude-personal-workflow-1.0.0",
+    "com.networknt.agent.codex-personal-workflow-1.0.0"
+  ],
+  "repositories": [
+    {
+      "name": "light-agent",
+      "source": "git@github.com:networknt/light-agent.git",
+      "integrationBranch": "master",
+      "releaseBranch": "qualification/phase1-publication"
+    }
+  ],
+  "operations": ["edit", "execute", "review", "commit", "push", "issue", "pull-request"],
+  "indexers": {}
+}
