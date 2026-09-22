@@ -16,6 +16,7 @@ assert(vm.boundedTimeoutSeconds > 0 && vm.boundedTimeoutSeconds <= 600, 'VM time
 assert(workflow.tasks.some((task) => task.type === 'ask'), 'workflow must reach ask');
 assert(workflow.tasks.every((task) => !['model','github','sql'].includes(task.type)), 'fixture cannot use model/GitHub/SQL tasks');
 for (const action of ['assert-assignment','assert-inbox','claim','release','complete','assert-continuation-count']) assert(ask.steps.some((step) => step.action === action), `ask fixture missing ${action}`);
+assert(ask.steps.some((step) => step.action === 'assert-expired-completion-rejected' && step.error === 'TASK_EXPIRED' && step.isolatedRun === true && step.taskRemainsWaiting === true), 'ask fixture must reject completion after its deadline');
 for (const action of ['assert-feature','assert-list-features','cancel-feature','await-vm-release','assert-old-stage-unchanged']) assert(vm.steps.some((step) => step.action === action), `VM fixture missing ${action}`);
 assert(vm.steps.some((step) => step.action === 'assert-feature' && step.runningInvocations === 0 && step.holdsVm === true), 'VM fixture must prove between-stage holder');
 assert(vm.steps.some((step) => step.action === 'await-vm-release' && step.positiveEvidenceRequired), 'VM fixture must require positive release evidence');

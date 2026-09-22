@@ -11,6 +11,7 @@
     {"action":"assert-inbox","actor":"owner","visible":true},
     {"action":"claim","actor":"owner","claimMinutes":30},
     {"action":"assert-competing-claim-rejected","error":"CLAIM_CONFLICT"},
+    {"action":"assert-expired-completion-rejected","isolatedRun":true,"error":"TASK_EXPIRED","taskRemainsWaiting":true},
     {"action":"release","actor":"owner"},
     {"action":"claim","actor":"owner","claimMinutes":30},
     {"action":"complete","actor":"owner","decision":"APPROVED","idempotencyKey":"fixture-assigned-ask"},

@@ -38,7 +38,7 @@ if (mode === 'archive') {
     'workflow-admin-assigned-ask-v1': ['supported-start-succeeded','operational-process-row','portal-row-absent','assignment-write-failed-missing-relation','unrelated-error-absent'],
     'workflow-admin-between-stage-vm-v1': ['supported-start-succeeded','no-running-invocation','retained-vm','unrelated-error-absent']
   } : {
-    'workflow-admin-assigned-ask-v1': ['assignment-created','authorized-portal-row-visible','exactly-one-continuation'],
+    'workflow-admin-assigned-ask-v1': ['assignment-created','authorized-portal-row-visible','expired-completion-rejected','exactly-one-continuation'],
     'workflow-admin-between-stage-vm-v1': ['no-running-invocation','retained-vm','feature-visible','vm-release-evidence']
   };
   for (const [fixture, requiredIds] of Object.entries(requiredByFixture)) {
