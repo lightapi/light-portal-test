@@ -1,0 +1,17 @@
+{
+  "namespace":"lightapi.test",
+  "name":"workflow-admin-assigned-ask",
+  "version":"1.0.0",
+  "description":"Deterministic Phase 0 fixture. No model, network, or repository write steps.",
+  "inputSchema":{"type":"object","additionalProperties":false},
+  "tasks":[
+    {
+      "id":"review",
+      "type":"ask",
+      "ask":{"mode":"approval","prompt":"Approve deterministic fixture?","required":true,"options":[{"label":"Approve","value":"APPROVED"},{"label":"Reject","value":"REJECTED"}]},
+      "assignments":[{"type":"USER","selector":"invocation.owner"},{"type":"ROLE","id":"workflow-fixture-reviewer"}],
+      "next":"finish"
+    },
+    {"id":"finish","type":"set","value":{"fixtureComplete":true}}
+  ]
+}

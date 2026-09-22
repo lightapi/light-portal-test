@@ -1,0 +1,16 @@
+{
+  "id":"workflow-admin-between-stage-vm-v1",
+  "provisioning":"supported-development-feature-start",
+  "boundedTimeoutSeconds":300,
+  "steps":[
+    {"action":"start-feature"},
+    {"action":"await-stage","stage":"intake","state":"COMPLETED"},
+    {"action":"await-stage","stage":"design","state":"COMPLETED"},
+    {"action":"assert-feature","state":"READY_FOR_NEXT_STAGE","holdsVm":true,"runningInvocations":0},
+    {"action":"assert-list-features","holdsVm":true,"visible":true},
+    {"action":"cancel-feature","useObservedExpectedVersion":true},
+    {"action":"assert-cancellation","requested":true},
+    {"action":"await-vm-release","released":true,"positiveEvidenceRequired":true},
+    {"action":"assert-old-stage-unchanged","state":"COMPLETED"}
+  ]
+}
