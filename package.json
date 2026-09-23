@@ -9,6 +9,8 @@
     "qualify:snapshot": "bash scripts/run-snapshot-qualification.sh",
     "test:promotion": "playwright test tests/promotion-ui",
     "test:promotion:list": "playwright test tests/promotion-ui --list",
+    "test:workflow-mcp-publication": "playwright test --config playwright.workflow-mcp-publication.config.js",
+    "test:workflow-mcp-publication:list": "playwright test --config playwright.workflow-mcp-publication.config.js --list",
     "test:runner": "node --test runner/*.test.mjs",
     "test:chat": "playwright test --config playwright.chat.config.js",
     "test:chat:list": "playwright test --config playwright.chat.config.js --list"

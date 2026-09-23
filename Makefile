@@ -33,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate workflow-admin-runtime-contract smoke llm mcp mcp-source workflow-mcp embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
+.PHONY: validate workflow-admin-runtime-contract smoke llm mcp mcp-source workflow-mcp workflow-mcp-publication embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
@@ -56,6 +56,9 @@ mcp-source:
 
 workflow-mcp:
 	./scripts/run-functional.sh tests/workflow-mcp
+
+workflow-mcp-publication:
+	./scripts/run-workflow-mcp-publication.sh
 
 embeddings:
 	ALLOW_BILLABLE_TESTS=$(ALLOW_BILLABLE_TESTS) ./scripts/run-embeddings.sh
@@ -99,6 +102,7 @@ batch:
 
 all:
 	$(MAKE) batch ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)
+	$(MAKE) workflow-mcp-publication
 ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
 	$(MAKE) embeddings ALLOW_BILLABLE_TESTS=true
 	$(MAKE) genai-chat-ui

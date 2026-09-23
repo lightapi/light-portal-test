@@ -97,8 +97,27 @@ make validate
 make smoke
 make llm
 make workflow-mcp
+make workflow-mcp-publication
 make functional
 ```
+
+`workflow-mcp-publication` is a destructive, serial local E2E lane for the
+dedicated `workflow-mcp-e2e-loc` Gateway. It normalizes that Gateway to an
+unpublished WF0001 baseline, publishes all 14 Tools, creates a current
+snapshot and restarts the Gateway, unpublishes and deploys again, verifies a
+repeat removal is a no-op, then republishes and deploys the final state. It
+preserves unrelated Gateway Tools and must not target a shared or production
+instance. Override the `WORKFLOW_MCP_E2E_*` values in the private environment
+file when the local fixture IDs, URL, or container name differ.
+The lane is included in `make all` as part of the daily suite.
+
+For one workflow-backed Tool, `scripts/run-workflow-tool-unpublish-e2e.sh`
+performs the same unpublish, snapshot activation, no-op re-preview, and
+republish lifecycle with an explicit protected ACL. It is opt-in and mutates
+the named local Gateway instance; set `WORKFLOW_TOOL_E2E_HOST_ID`,
+`WORKFLOW_TOOL_E2E_INSTANCE_NAME`, `WORKFLOW_TOOL_E2E_TOOL_NAME`,
+`WORKFLOW_TOOL_E2E_GATEWAY_URL`, `WORKFLOW_TOOL_E2E_CONTAINER`, and
+`WORKFLOW_TOOL_E2E_REQUEST_RULE` only for an isolated local test target.
 
 ## Promotion automation
 
