@@ -13,6 +13,8 @@ interface.
 - `make mcp-source` runs the complementary sibling-repository regression tests.
 - k6 runs controlled smoke, performance, soak, and later WebSocket workloads.
 - Playwright runs the promotion UI canary in a real Chromium browser.
+- `make workflow-process-ui` signs in to Process Info and requires at least one
+  process row. This read-only browser check is included in `make all`.
 
 Live LLM tests call billable providers. The ordinary functional lane sends only
 a small number of requests. Performance tests that generate completions require
@@ -98,6 +100,7 @@ make smoke
 make llm
 make workflow-mcp
 make workflow-mcp-publication
+make workflow-process-ui
 make functional
 ```
 
@@ -110,6 +113,13 @@ preserves unrelated Gateway Tools and must not target a shared or production
 instance. Override the `WORKFLOW_MCP_E2E_*` values in the private environment
 file when the local fixture IDs, URL, or container name differ.
 The lane is included in `make all` as part of the daily suite.
+
+`workflow-process-ui` uses `WORKFLOW_E2E_EMAIL` and
+`WORKFLOW_E2E_PASSWORD`, falling back to the configured `PROMOTION_E2E_*`
+credentials. Set `WORKFLOW_UI_BASE_URL` to test a different Portal UI, or
+`WORKFLOW_AUTH_STATE_FILE` to use an existing Playwright login state. Its
+signed-in user needs access to Workflow Admin processes, and the target must
+already contain at least one process.
 
 For one workflow-backed Tool, `scripts/run-workflow-tool-unpublish-e2e.sh`
 performs the same unpublish, snapshot activation, no-op re-preview, and
