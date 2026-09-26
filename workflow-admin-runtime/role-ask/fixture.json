@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "definitionSource": "light-fabric/apps/light-workflow/examples/human-approval.yaml",
+  "roleId": "admin",
+  "reasonCode": "human-approval",
+  "decision": "APPROVED",
+  "expectedContinuationTaskCount": 2,
+  "gatewayPath": "/mcp",
+  "portalCommandPath": "/portal/command",
+  "setup": "Use a saved and prepared human-approval definition, a dedicated author, two disposable current admin-role members, and an ACL-enabled nonmember; supply context and token file paths from the documented local login/fixture helpers.",
+  "cleanup": "The driver restores only the fixture-owned revoked role membership through Portal commands and requests terminal process deletion through Gateway MCP. Never reset the stack or write Portal projections directly."
+}

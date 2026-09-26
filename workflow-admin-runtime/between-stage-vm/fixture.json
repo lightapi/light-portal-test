@@ -1,7 +1,11 @@
 {
   "id":"workflow-admin-between-stage-vm-v1",
   "provisioning":"supported-development-feature-start",
-  "boundedTimeoutSeconds":300,
+  "workflow":"existing-phase1-intake-design",
+  "catalogSource":"light-portal-event/workflow/20260915-design-cycle/catalog-v1.0.7.json",
+  "gatewayTools":{"intake":"phase1_design_cycle_intake","design":"phase1_design_cycle_design"},
+  "externalEffects":{"agentModelCalls":true,"repositoryWorkspaceWrites":true,"captureTargetsAndCleanup":true},
+  "boundedTimeoutSeconds":1800,
   "steps":[
     {"action":"start-feature"},
     {"action":"await-stage","stage":"intake","state":"COMPLETED"},

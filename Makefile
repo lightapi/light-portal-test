@@ -33,14 +33,22 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate workflow-admin-runtime-contract smoke llm mcp mcp-source workflow-mcp workflow-mcp-publication workflow-process-ui embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
+.PHONY: validate workflow-admin-runtime-contract workflow-role-contract workflow-role-runtime smoke llm mcp mcp-source workflow-mcp workflow-mcp-publication workflow-process-ui embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
 	./scripts/run-workflow-admin-runtime-gates.sh contract
+	node workflow-admin-runtime/gate.test.mjs
 
 workflow-admin-runtime-contract:
 	./scripts/run-workflow-admin-runtime-gates.sh contract
+	node workflow-admin-runtime/gate.test.mjs
+
+workflow-role-contract:
+	node --test workflow-admin-runtime/role-ask/driver.test.mjs
+
+workflow-role-runtime:
+	node workflow-admin-runtime/role-ask/driver.mjs --mode runtime --fixture workflow-admin-runtime/role-ask/fixture.json --evidence $${WORKFLOW_ROLE_EVIDENCE:-/tmp/workflow-role-runtime-evidence.json}
 
 smoke:
 	./scripts/run-functional.sh tests/smoke

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const [mode, ...files] = process.argv.slice(2);
 const fail = (message) => { console.error(`FAIL ${message}`); process.exit(1); };
-if (!['archive','baseline','restored'].includes(mode) || files.length === 0) fail('usage: validate-evidence.mjs archive|baseline|restored FILE...');
+if (!['archive','runtime'].includes(mode) || files.length === 0) fail('usage: validate-evidence.mjs archive|runtime FILE...');
 const evidence = files.map((file) => JSON.parse(fs.readFileSync(file, 'utf8')));
 const exactTimestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/;
 const isExactRfc3339 = (value) => {
@@ -34,12 +34,9 @@ if (mode === 'archive') {
   if (evidence.length !== 2) fail(`${mode} mode requires exactly two fixture evidence files`);
   const byFixture = new Map(evidence.map((item) => [item.fixture, item]));
   if (byFixture.size !== evidence.length) fail(`${mode} evidence contains duplicate fixture identifiers`);
-  const requiredByFixture = mode === 'baseline' ? {
-    'workflow-admin-assigned-ask-v1': ['supported-start-succeeded','operational-process-row','portal-row-absent','assignment-write-failed-missing-relation','unrelated-error-absent'],
-    'workflow-admin-between-stage-vm-v1': ['supported-start-succeeded','no-running-invocation','retained-vm','unrelated-error-absent']
-  } : {
-    'workflow-admin-assigned-ask-v1': ['assignment-created','authorized-portal-row-visible','expired-completion-rejected','exactly-one-continuation'],
-    'workflow-admin-between-stage-vm-v1': ['no-running-invocation','retained-vm','feature-visible','vm-release-evidence']
+  const requiredByFixture = {
+    'workflow-admin-assigned-ask-v1': ['supported-start-succeeded','operational-process-row','assignment-created','authorized-portal-row-visible','expired-completion-rejected','exactly-one-continuation'],
+    'workflow-admin-between-stage-vm-v1': ['supported-start-succeeded','no-running-invocation','retained-vm','feature-visible','vm-release-evidence']
   };
   for (const [fixture, requiredIds] of Object.entries(requiredByFixture)) {
     const item = byFixture.get(fixture);

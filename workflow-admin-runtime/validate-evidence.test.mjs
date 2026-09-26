@@ -9,12 +9,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const validator = path.join(root, 'validate-evidence.mjs');
 const required = {
-  ask: ['supported-start-succeeded','operational-process-row','portal-row-absent','assignment-write-failed-missing-relation','unrelated-error-absent'],
-  vm: ['supported-start-succeeded','no-running-invocation','retained-vm','unrelated-error-absent']
+  ask: ['supported-start-succeeded','operational-process-row','assignment-created','authorized-portal-row-visible','expired-completion-rejected','exactly-one-continuation'],
+  vm: ['supported-start-succeeded','no-running-invocation','retained-vm','feature-visible','vm-release-evidence']
 };
 const evidence = (fixture, ids, observedAt = '2026-09-22T10:00:00-04:00') => ({
   fixture,
-  mode: 'baseline',
+  mode: 'runtime',
   observedAt,
   environment: 'disposable-test',
   qualificationEvidence: true,
@@ -27,12 +27,12 @@ const run = (ask, vm) => {
   const vmFile = path.join(dir, 'vm.json');
   writeFileSync(askFile, JSON.stringify(ask));
   writeFileSync(vmFile, JSON.stringify(vm));
-  return spawnSync(process.execPath, [validator, 'baseline', askFile, vmFile], {encoding:'utf8'});
+  return spawnSync(process.execPath, [validator, 'runtime', askFile, vmFile], {encoding:'utf8'});
 };
 const validAsk = () => evidence('workflow-admin-assigned-ask-v1', required.ask);
 const validVm = () => evidence('workflow-admin-between-stage-vm-v1', required.vm);
 
-test('accepts two complete fixture-bound baseline files', () => {
+test('accepts two complete fixture-bound runtime files', () => {
   assert.equal(run(validAsk(), validVm()).status, 0);
 });
 
@@ -49,7 +49,7 @@ test('rejects an empty fixture assertion array', () => {
 });
 
 test('rejects assertions assigned to the wrong fixture', () => {
-  assert.notEqual(run(evidence('workflow-admin-assigned-ask-v1', [...required.ask, ...required.vm]), evidence('workflow-admin-between-stage-vm-v1', ['unrelated-error-absent'])).status, 0);
+  assert.notEqual(run(evidence('workflow-admin-assigned-ask-v1', [...required.ask, ...required.vm]), evidence('workflow-admin-between-stage-vm-v1', ['retained-vm'])).status, 0);
 });
 
 test('rejects a missing assertion id', () => {

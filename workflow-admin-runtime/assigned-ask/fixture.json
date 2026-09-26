@@ -1,21 +1,22 @@
 {
-  "id":"workflow-admin-assigned-ask-v1",
-  "provisioning":"supported-workflow-start",
-  "definition":"workflow.json",
-  "boundedTimeoutSeconds":120,
-  "actors":{"owner":"USER","roleReviewer":"ROLE"},
-  "steps":[
-    {"action":"start","actor":"owner"},
-    {"action":"await-task","state":"WAITING","taskType":"ask"},
-    {"action":"assert-assignment","assignmentTypes":["USER","ROLE"]},
-    {"action":"assert-inbox","actor":"owner","visible":true},
-    {"action":"claim","actor":"owner","claimMinutes":30},
-    {"action":"assert-competing-claim-rejected","error":"CLAIM_CONFLICT"},
-    {"action":"assert-expired-completion-rejected","isolatedRun":true,"error":"TASK_EXPIRED","taskRemainsWaiting":true},
-    {"action":"release","actor":"owner"},
-    {"action":"claim","actor":"owner","claimMinutes":30},
-    {"action":"complete","actor":"owner","decision":"APPROVED","idempotencyKey":"fixture-assigned-ask"},
-    {"action":"repeat-complete","actor":"owner","expectedContinuations":1},
-    {"action":"assert-continuation-count","count":1}
+  "id": "workflow-admin-assigned-ask-v1",
+  "provisioning": "supported-workflow-start",
+  "definition": "workflow.json",
+  "definitionVersion": "1.0.1",
+  "boundedTimeoutSeconds": 120,
+  "actors": { "owner": "USER" },
+  "steps": [
+    { "action": "start", "actor": "owner" },
+    { "action": "await-task", "state": "WAITING", "taskType": "ask" },
+    { "action": "assert-assignment", "assignmentTypes": ["USER"] },
+    { "action": "assert-inbox", "actor": "owner", "visible": true },
+    { "action": "claim", "actor": "owner", "claimMinutes": 30 },
+    { "action": "assert-competing-claim-rejected", "error": "CLAIM_CONFLICT" },
+    { "action": "assert-expired-completion-rejected", "isolatedRun": true, "error": "TASK_EXPIRED", "taskRemainsWaiting": true },
+    { "action": "release", "actor": "owner" },
+    { "action": "claim", "actor": "owner", "claimMinutes": 30 },
+    { "action": "complete", "actor": "owner", "decision": "APPROVED", "idempotencyKey": "fixture-assigned-ask" },
+    { "action": "repeat-complete", "actor": "owner", "expectedContinuations": 1 },
+    { "action": "assert-continuation-count", "count": 1 }
   ]
 }

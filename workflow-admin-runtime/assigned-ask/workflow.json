@@ -1,17 +1,1 @@
-{
-  "namespace":"lightapi.test",
-  "name":"workflow-admin-assigned-ask",
-  "version":"1.0.0",
-  "description":"Deterministic Phase 0 fixture. No model, network, or repository write steps.",
-  "inputSchema":{"type":"object","additionalProperties":false},
-  "tasks":[
-    {
-      "id":"review",
-      "type":"ask",
-      "ask":{"mode":"approval","prompt":"Approve deterministic fixture?","required":true,"options":[{"label":"Approve","value":"APPROVED"},{"label":"Reject","value":"REJECTED"}]},
-      "assignments":[{"type":"USER","selector":"invocation.owner"},{"type":"ROLE","id":"workflow-fixture-reviewer"}],
-      "next":"finish"
-    },
-    {"id":"finish","type":"set","value":{"fixtureComplete":true}}
-  ]
-}
+{"document":{"dsl":"1.0.3","namespace":"lightapi-test","name":"workflow-admin-assigned-ask","version":"1.0.1","title":"Workflow Admin Assigned Ask Fixture","summary":"Deterministic USER assignment and continuation fixture"},"evaluate":{"language":"cel"},"input":{"schema":{"format":"json","document":{"type":"object","additionalProperties":false,"required":["requesterUserId"],"properties":{"requesterUserId":{"type":"string","format":"uuid"}}}}},"output":{"schema":{"format":"json","document":{"type":"object","additionalProperties":true}}},"do":[{"review":{"ask":{"prompt":"Approve the deterministic Workflow Admin fixture?","mode":"approval","assignment":{"assigneeId":"${ .requesterUserId }","categoryCode":"workflow-admin-fixture","reasonCode":"assigned-ask-regression"},"options":[{"label":"Approve","value":"APPROVED"},{"label":"Reject","value":"REJECTED"}],"required":true,"timeout":{"after":"PT15S"},"onTimeout":{"action":"default","default":"REJECTED"}},"export":{"as":{"decision":".output"}},"then":"finish"}},{"finish":{"set":{"fixtureComplete":true,"decision":"${ .decision }"}}}]}
