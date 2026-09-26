@@ -3,20 +3,27 @@ import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
 const expectedWorkflowTools = [
+  'workflow_add_process_note',
   'workflow_cancel',
   'workflow_cancel_feature',
   'workflow_claim_human_task',
   'workflow_complete_human_task',
+  'workflow_decide_tool_access',
+  'workflow_delete_process',
   'workflow_get_feature',
   'workflow_get_human_task',
   'workflow_get_human_task_inbox_summary',
   'workflow_get_process',
   'workflow_get_result',
   'workflow_get_status',
+  'workflow_get_task',
   'workflow_list_features',
   'workflow_list_human_tasks',
+  'workflow_list_process_notes',
   'workflow_list_processes',
   'workflow_release_human_task',
+  'workflow_rule_test',
+  'workflow_start',
 ];
 
 function required(name) {
@@ -259,7 +266,7 @@ test('publishes, unpublishes, and republishes all WF0001 Tools', async ({ page }
     globalFilter: '',
   });
   const tools = toolResponse.tools || [];
-  expect(tools).toHaveLength(14);
+  expect(tools).toHaveLength(expectedWorkflowTools.length);
   expect(tools.map(tool => tool.name).sort()).toEqual(expectedWorkflowTools);
   const toolIds = tools.map(tool => tool.toolId);
 
