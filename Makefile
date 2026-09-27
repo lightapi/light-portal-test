@@ -33,7 +33,7 @@ export EMBEDDING_SPACE_ID
 export EMBEDDING_SPACE_REVISION
 export EMBEDDING_DIMENSION
 
-.PHONY: validate workflow-admin-runtime-contract workflow-role-contract workflow-role-runtime smoke llm mcp mcp-source workflow-mcp workflow-mcp-publication workflow-process-ui embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
+.PHONY: validate workflow-admin-runtime-contract workflow-role-contract workflow-role-runtime smoke llm mcp mcp-source workflow-mcp workflow-mcp-publication workflow-tool-binding workflow-process-ui embeddings promotion-api promotion-ui genai-chat-ui promotion-hourly functional repeat perf-smoke perf-live batch all runner
 
 validate:
 	./scripts/validate.sh
@@ -67,6 +67,9 @@ workflow-mcp:
 
 workflow-mcp-publication:
 	./scripts/run-workflow-mcp-publication.sh
+
+workflow-tool-binding:
+	./scripts/run-workflow-tool-binding.sh
 
 workflow-process-ui:
 	./scripts/run-workflow-process-ui.sh
