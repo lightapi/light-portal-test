@@ -124,6 +124,7 @@ all:
 	$(MAKE) batch ALLOW_BILLABLE_TESTS=$(ALL_ALLOW_BILLABLE_TESTS)
 	$(MAKE) workflow-mcp-publication
 	$(MAKE) workflow-process-ui
+	$(MAKE) workflow-long-binding-ui
 	$(MAKE) rule-execution-ui
 ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
 	$(MAKE) embeddings ALLOW_BILLABLE_TESTS=true
