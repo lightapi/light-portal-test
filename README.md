@@ -449,13 +449,11 @@ file; an API bearer token alone is not a browser login. Credentials are never
 checked into the test. Local self-signed browser certificates are accepted by
 default; use `TLS_INSECURE=false` with trusted certificates.
 
-The suite disconnects in `finally` and retains only its scoped session IDs in
-`.playwright-auth/chat-session.json` (ignored, mode 0600) for reuse across runs.
-Disconnect does not end the durable server session. Do not run concurrent copies
-against the same session file. Set `CHAT_SESSION_FILE` for a dedicated test
-identity; remove that file to start fresh after session expiry or a policy
-replacement. Existing sessions then expire under the Agent's normal policy.
-The test does not modify policy, delete database rows, or hide failed resumes.
+The suite starts a fresh Agent session on each run and disconnects in `finally`.
+Disconnect does not end the durable server session; it expires under the Agent's
+normal policy. This keeps policy replacements and Agent restarts from making a
+saved session ID invalidate later smoke runs. The test does not modify policy
+or delete database rows.
 
 List without contacting the deployment: `npm run test:chat:list`.
 JUnit and failure artifacts are under `reports/genai-chat/`. Traces and videos

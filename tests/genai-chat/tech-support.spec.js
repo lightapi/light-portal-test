@@ -1,21 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 
-test('Tech Support: UI login, session admission, and real LLM reply', async ({ page, context, baseURL }) => {
-  const sessionFile = path.resolve(process.env.CHAT_SESSION_FILE || '.playwright-auth/chat-session.json');
-  const origin = new URL(baseURL).origin;
-  const saved = fs.existsSync(sessionFile) ? JSON.parse(fs.readFileSync(sessionFile, 'utf8')) : {};
-  if (saved.origin === origin) {
-    await context.addInitScript(({ origin, entries }) => {
-      if (location.origin === origin) {
-        for (const [key, value] of Object.entries(entries || {})) {
-          if (key.startsWith('agentSessionId:')) sessionStorage.setItem(key, value);
-        }
-      }
-    }, saved);
-  }
+test('Tech Support: UI login, session admission, and real LLM reply', async ({ page, context }) => {
   const errors = [];
   const replies = [];
   let sessionId;
@@ -70,12 +56,7 @@ test('Tech Support: UI login, session admission, and real LLM reply', async ({ p
     const reply = replies.find(text => text.includes(marker));
     await expect(page.getByText(reply, { exact: true })).toBeVisible();
   } finally {
-    if (!page.isClosed() && new URL(page.url()).origin === origin) {
-      const entries = await page.evaluate(() => Object.fromEntries(
-        Object.entries(sessionStorage).filter(([key]) => key.startsWith('agentSessionId:')),
-      ));
-      fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
-      fs.writeFileSync(sessionFile, JSON.stringify({ origin, entries }), { mode: 0o600 });
+    if (!page.isClosed()) {
       const disconnect = page.getByRole('button', { name: 'Disconnect', exact: true });
       if (await disconnect.isVisible()) await disconnect.click();
     }

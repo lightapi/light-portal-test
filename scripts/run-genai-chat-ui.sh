@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 # Preserve explicit overrides when loading the same private environment file
 # used by the other suites. Browser login does not require API token refresh.
-names=(CHAT_UI_BASE_URL CHAT_AGENT_LABEL CHAT_AUTH_STATE_FILE CHAT_SESSION_FILE
+names=(CHAT_UI_BASE_URL CHAT_AGENT_LABEL CHAT_AUTH_STATE_FILE
        CHAT_E2E_EMAIL CHAT_E2E_PASSWORD TLS_INSECURE)
 declare -A supplied=()
 for name in "${names[@]}"; do
@@ -23,7 +23,7 @@ done
 export CHAT_UI_BASE_URL="${CHAT_UI_BASE_URL:-${PROMOTION_UI_BASE_URL:-https://localhost:3000}}"
 export CHAT_E2E_EMAIL="${CHAT_E2E_EMAIL:-${PROMOTION_E2E_EMAIL:-}}"
 export CHAT_E2E_PASSWORD="${CHAT_E2E_PASSWORD:-${PROMOTION_E2E_PASSWORD:-}}"
-export CHAT_AGENT_LABEL CHAT_AUTH_STATE_FILE CHAT_SESSION_FILE TLS_INSECURE
+export CHAT_AGENT_LABEL CHAT_AUTH_STATE_FILE TLS_INSECURE
 playwright="$repo_root/node_modules/.bin/playwright"
 if [[ ! -x "$playwright" ]]; then
   echo "Playwright is not installed. Run 'npm ci' in $repo_root first." >&2

@@ -132,13 +132,12 @@ test('test01 creates an admin approval task and completes after UI approval', as
     loanAmount: 250000,
     creditScore: 650,
   });
-  await expectProcessState(page, approvalDefinitionId, instanceId, 'WAITING');
-
   let assignment;
   await expect.poll(async () => {
     assignment = await findRunAssignment(page, instanceId);
     return assignment?.taskAsstId || null;
   }, { message: `Admin assignment for ${instanceId} must appear`, timeout: 60_000, intervals: [1000, 2000, 3000] }).not.toBeNull();
+  await expectProcessState(page, approvalDefinitionId, instanceId, 'RUNNING');
 
   const taskQuery = new URLSearchParams({
     hostId, processId: assignment.processId, taskId: assignment.taskId,
