@@ -276,9 +276,11 @@ test('publishes, unpublishes, and republishes all WF0001 Tools', async ({ page }
     filters: JSON.stringify([{ id: 'apiVersionId', value: fixture.apiVersionId }]),
     globalFilter: '',
   });
-  const tools = toolResponse.tools || [];
-  expect(tools).toHaveLength(expectedWorkflowTools.length);
+  const apiTools = toolResponse.tools || [];
+  // workflow_invoke is reserved for Gateway's internal call and must not be published.
+  const tools = apiTools.filter(tool => tool.name !== 'workflow_invoke');
   expect(tools.map(tool => tool.name).sort()).toEqual(expectedWorkflowTools.toSorted());
+  expect(tools).toHaveLength(expectedWorkflowTools.length);
   expect(tools.map(tool => tool.name)).not.toContain('workflow_invoke');
   const toolIds = tools.map(tool => tool.toolId);
 
