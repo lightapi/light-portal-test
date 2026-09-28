@@ -13,7 +13,9 @@
     "test:workflow-mcp-publication:list": "playwright test --config playwright.workflow-mcp-publication.config.js --list",
     "test:runner": "node --test runner/*.test.mjs",
     "test:chat": "playwright test --config playwright.chat.config.js",
-    "test:chat:list": "playwright test --config playwright.chat.config.js --list"
+    "test:chat:list": "playwright test --config playwright.chat.config.js --list",
+    "test:rule-execution": "playwright test --config playwright.rule-execution.config.js",
+    "test:rule-execution:list": "playwright test --config playwright.rule-execution.config.js --list"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0"
