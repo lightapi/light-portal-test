@@ -38,7 +38,7 @@ X-Correlation-Id: light-portal-test-workflow-call-{{run_id}}
   "method": "tools/call",
   "params": {
     "name": "{{workflow_smoke_tool}}",
-    "arguments": {},
+    "arguments": {"message": "message"},
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
@@ -71,6 +71,7 @@ X-Correlation-Id: light-portal-test-workflow-invalid-{{run_id}}
   "params": {
     "name": "{{workflow_smoke_tool}}",
     "arguments": {
+      "message": "message",
       "unexpected": true
     },
     "_meta": {
