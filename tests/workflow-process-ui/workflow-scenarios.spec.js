@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { pageFixtureClient, workflowHostId, simpleDefinitionId as fixtureSimpleDefinitionId } from '../../runner/workflow-fixtures.mjs';
 
-const hostId = process.env.WORKFLOW_TEST_HOST_ID || '01964b05-552a-7c4b-9184-6857e7f3dc5f';
-const simpleDefinitionId = process.env.WORKFLOW_SIMPLE_DEF_ID || '019e4881-9637-731c-a443-6590d25c5204';
+const hostId = workflowHostId();
+const simpleDefinitionId = fixtureSimpleDefinitionId();
 const approvalDefinitionId = process.env.WORKFLOW_APPROVAL_DEF_ID || '01a001ca-f27d-7f80-a1e7-fbb84d5422f6';
 
 async function signInIfNeeded(page, context) {
@@ -76,45 +77,13 @@ async function expectProcessState(page, definitionId, instanceId, expectedState)
 // Read only MCP lookup identifies the assignment created by this run. Start,
 // claim, and approval are exercised through the Portal UI.
 async function findRunAssignment(page, instanceId) {
-  return page.evaluate(async (wantedInstanceId) => {
-    const csrfCookie = document.cookie.split('; ').find(value => value.startsWith('csrf='));
-    const csrf = csrfCookie ? decodeURIComponent(csrfCookie.slice(5)) : '';
-    const id = crypto.randomUUID();
-    const response = await fetch('/mcp', {
-      method: 'POST', credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream',
-        'MCP-Protocol-Version': '2026-07-28',
-        'Mcp-Method': 'tools/call',
-        'Mcp-Name': 'workflow_list_human_tasks',
-        ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0', id, method: 'tools/call',
-        params: {
-          name: 'workflow_list_human_tasks',
-          arguments: { page: { cursor: '0', pageSize: 100 }, tabId: 'all', includeClaimed: true },
-          _meta: {
-            'io.modelcontextprotocol/protocolVersion': '2026-07-28',
-            'io.modelcontextprotocol/clientCapabilities': {},
-            'io.modelcontextprotocol/clientInfo': { name: 'light-portal-workflow-test', version: '1.0.0' },
-          },
-        },
-      }),
-    });
-    if (!response.ok) throw new Error(`Workflow task lookup returned HTTP ${response.status}.`);
-    const envelope = await response.json();
-    if (envelope.error || envelope.result?.isError) throw new Error('Workflow task lookup was rejected.');
-    const result = envelope.result?.structuredContent || JSON.parse(envelope.result?.content?.find(item => item.type === 'text')?.text || '{}');
-    const task = result.humanTasks?.find(item => item.workflowInstanceId === wantedInstanceId);
-    return task ? {
-      taskAsstId: task.taskAsstId,
-      taskId: task.taskId,
-      processId: task.processId,
-      category: task.category,
-    } : null;
-  }, instanceId);
+  const result = await pageFixtureClient(page).mcp('workflow_list_human_tasks', {
+    page: { cursor: '0', pageSize: 100 }, tabId: 'all', includeClaimed: true,
+  });
+  const task = result.humanTasks?.find(item => item.workflowInstanceId === instanceId);
+  return task ? {
+    taskAsstId: task.taskAsstId, taskId: task.taskId, processId: task.processId, category: task.category,
+  } : null;
 }
 
 test('simple-set-assert starts in Editor and completes', async ({ page, context }) => {

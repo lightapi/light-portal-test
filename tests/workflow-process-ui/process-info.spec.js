@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { pageFixtureClient, workflowHostId, simpleDefinitionId } from '../../runner/workflow-fixtures.mjs';
 
 test('signed-in Process Info page contains a process row', async ({ page, context }) => {
   await page.goto('/app/workflow/ProcessInfo');
@@ -30,10 +31,23 @@ test('signed-in Process Info page contains a process row', async ({ page, contex
     await page.goto('/app/workflow/ProcessInfo');
   }
 
+  const client = pageFixtureClient(page);
+  const hostId = workflowHostId();
+  const wfDefId = simpleDefinitionId();
+  const started = await client.command('workflow', 'startWorkflow', {
+    hostId, wfDefId, input: { applicantId: `e2e-process-info-${crypto.randomUUID()}` },
+    idempotencyKey: crypto.randomUUID(),
+  });
+  expect(started.accepted, 'Fixture start must be accepted').toBe(true);
+  expect(started.workflowDefinitionId).toBe(wfDefId);
+  const instanceId = started.workflowInstanceId;
+  expect(instanceId, 'Fixture start must return its own instance ID').toMatch(/^[0-9a-f-]{36}$/);
+  await page.goto('/app/workflow/ProcessInfo');
   await expect(page.getByRole('tab', { name: 'Processes', exact: true })).toBeVisible();
   const table = page.getByRole('table');
   await expect(table).toBeVisible();
-  const firstProcess = table.locator('tbody tr[data-index]').first();
-  await expect(firstProcess, 'Process Info must display at least one process row').toBeVisible();
-  await expect(firstProcess).toContainText(/\S/);
+  // Cover the default, unfiltered list. The start above makes an empty runtime self-contained.
+  const processRow = table.locator('tbody tr[data-index]').first();
+  await expect(processRow, 'The default Process Info list must contain a process').toBeVisible();
+  await expect(processRow).toContainText(/\S/);
 });

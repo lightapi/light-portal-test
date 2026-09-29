@@ -13,8 +13,9 @@ interface.
 - `make mcp-source` runs the complementary sibling-repository regression tests.
 - k6 runs controlled smoke, performance, soak, and later WebSocket workloads.
 - Playwright runs the promotion UI canary in a real Chromium browser.
-- `make workflow-process-ui` signs in to Process Info and requires at least one
-  process row. This read-only browser check is included in `make all`.
+- `make workflow-process-ui` starts test
+  processes and exercises Process Info, Editor execution, and human approval.
+  It is included in `make all`.
 
 Live LLM tests call billable providers. The ordinary functional lane sends only
 a small number of requests. Performance tests that generate completions require
@@ -27,7 +28,7 @@ an explicit `ALLOW_BILLABLE_TESTS=true` opt-in.
   [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) natively. Native
   binaries take precedence over containers.
 - Bash, `curl`, and `jq`
-- Node.js 20 or newer for the Playwright promotion lane
+- Node.js 20 or newer for Playwright and workflow fixture preparation
 
 The default container images are:
 
@@ -118,8 +119,13 @@ The lane is included in `make all` as part of the daily suite.
 `WORKFLOW_E2E_PASSWORD`, falling back to the configured `PROMOTION_E2E_*`
 credentials. Set `WORKFLOW_UI_BASE_URL` to test a different Portal UI, or
 `WORKFLOW_AUTH_STATE_FILE` to use an existing Playwright login state. Its
-signed-in user needs access to Workflow Admin processes, and the target must
-already contain at least one process.
+signed-in user needs access to Workflow Admin processes and permission to start
+the fixture workflows. No pre-existing process is required: Process Info starts
+a `simple-set-assert` instance and then checks the default, unfiltered list. The
+Editor tests start `simple-set-assert` and `test01`. Portal's start command owns
+definition/grant synchronization and its retry policy; the tests do not add a
+separate synchronization gate. Override `WORKFLOW_TEST_HOST_ID`, `WORKFLOW_SIMPLE_DEF_ID`, and
+`WORKFLOW_APPROVAL_DEF_ID` for a different baseline.
 
 For one workflow-backed Tool, `scripts/run-workflow-tool-unpublish-e2e.sh`
 performs the same unpublish, snapshot activation, no-op re-preview, and
@@ -279,14 +285,52 @@ have Portal Scheduler invoke the workflow with a unique `correlationId` hourly
 or daily. The workflow receives HTTP 202 immediately; test completion and
 failure alerting are owned by the runner/monitoring system.
 
-The `workflow-mcp` lane verifies discovery and invocation of the synchronized
+The `workflow-mcp` lane verifies discovery and invocation of the
 `workflow_mcp_smoke` and `customer_360` tools. It also verifies that the smoke
-tool rejects missing required input. The default MCP endpoint is
+tool rejects unexpected input properties. The default MCP endpoint is
 `https://localhost/mcp`; override `MCP_BASE_URL` when the development
-installation publishes light-gateway at another origin. These tests assume the
-Portal events and gateway configuration for both tools have already been
-synchronized into the target `portal-config-loc` or `light-portal-install`
-environment.
+installation publishes light-gateway at another origin.
+
+After a fresh database initialization and baseline event import, the workflow
+fixture hook at `tests/workflow-mcp/prepare.sh` prepares the selected test tools.
+It reads Portal's current pinned binding and compares its source binding ID,
+workflow definition ID, version, and definition digest with the approved runtime
+revision. Missing or stale bindings are synchronized and published through
+Portal's `publishWorkflowToolBindings` command, then checked again through MCP.
+Healthy reruns only read state. `WORKFLOW_SMOKE_TOOL` and `CUSTOMER_360_TOOL`
+override the fixture names.
+
+Run `npm ci` before this lane. Setup uses the public Gateway at `MCP_BASE_URL`
+(default `https://localhost`) for Portal APIs as well as runtime binding checks.
+The shared Hurl runner's `PORTAL_BASE_URL` defaults to the separate LLM Gateway
+at `:8444`, which does not serve Portal queries. If the Portal APIs live elsewhere,
+set `WORKFLOW_SETUP_BASE_URL` explicitly to the Portal backend associated with the
+tested Gateway. This override never changes the MCP endpoint.
+
+For `ui-login`, Portal requests reuse the working browser session and CSRF cookie,
+plus the current user bearer token. Setup requires the Portal API and login to
+share a hostname; it never silently redirects to `PROMOTION_UI_BASE_URL`. Other
+authentication modes use the configured bearer token. MCP checks always use a
+separate bearer-only request context at exactly Hurl's `MCP_BASE_URL`, so a UI's
+Gateway or browser cookies cannot make the wrong runtime appear ready.
+
+The baseline Portal events (including pinned published versions, bindings, and
+grants) and Gateway tool/ACL configuration must already be imported. Setup does
+not create missing catalog records, deploy Gateway configuration, approve pending
+bindings, or reactivate retired bindings. Pending/unconfirmed publication fails
+with its operation ID when available; reconcile that operation in Portal before
+retrying. If only the runtime database was reset while Portal retained sync
+acknowledgements/publication receipts, unresolved runtime absence remains a
+failure rather than being reported as ready.
+
+The generic Hurl runner discovers optional `prepare.sh` hooks next to selected
+Hurl files; it has no workflow fixture table or unconditional Node dependency.
+It resolves checkout and input paths physically, so symlinked workspaces work.
+Report paths and the Hurl/container backend are validated before preparation.
+Unrelated files run even when a directory's hook fails. A failed hook skips only
+that directory's files, returns a failing exit status, and records `prepare-N.log`
+and a failed JUnit testcase in `prepare-N.xml` under `REPORT_DIR`. Hurl results
+remain in `junit.xml`; consumers should collect both that file and `prepare-*.xml`.
 
 Test the published NVIDIA embedding query and indexing Aliases through the
 gateway with two bounded requests:
