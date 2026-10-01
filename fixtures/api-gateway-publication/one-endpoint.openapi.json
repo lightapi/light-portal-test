@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Portal API publication lifecycle fixture", "version": "1.0.0" },
+  "paths": {
+    "/_portal-test/api-publication/ping": {
+      "get": {
+        "operationId": "portalPublicationPing",
+        "summary": "Single endpoint for the Portal publication lifecycle test",
+        "responses": { "200": { "description": "Test response" } }
+      }
+    }
+  }
+}

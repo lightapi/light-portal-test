@@ -40,6 +40,10 @@ validate:
 	./scripts/run-workflow-admin-runtime-gates.sh contract
 	node workflow-admin-runtime/gate.test.mjs
 
+.PHONY: api-gateway-publication-ui
+api-gateway-publication-ui:
+	bash scripts/run-api-gateway-publication-ui.sh
+
 workflow-admin-runtime-contract:
 	./scripts/run-workflow-admin-runtime-gates.sh contract
 	node workflow-admin-runtime/gate.test.mjs
@@ -126,6 +130,7 @@ all:
 	$(MAKE) workflow-process-ui
 	$(MAKE) workflow-long-binding-ui
 	$(MAKE) rule-execution-ui
+	$(MAKE) api-gateway-publication-ui
 ifeq ($(ALL_ALLOW_BILLABLE_TESTS),true)
 	$(MAKE) embeddings ALLOW_BILLABLE_TESTS=true
 	$(MAKE) genai-chat-ui

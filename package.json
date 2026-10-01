@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:api-gateway-publication": "bash scripts/run-api-gateway-publication-ui.sh",
+    "test:api-gateway-publication:list": "playwright test --config playwright.api-gateway-publication.config.js --list",
     "test:workspace": "node --test tests/workspace-qualification/*.test.mjs",
     "qualify:workspace": "node scripts/run-workspace-qualification.mjs",
     "qualify:snapshot": "bash scripts/run-snapshot-qualification.sh",

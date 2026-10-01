@@ -101,6 +101,7 @@ make smoke
 make llm
 make workflow-mcp
 make workflow-mcp-publication
+make api-gateway-publication-ui
 make workflow-process-ui
 make functional
 ```
@@ -372,6 +373,11 @@ tests, with one command:
 ```bash
 make all
 ```
+
+This also runs the one-endpoint API Gateway publication lifecycle against
+`portal-bff-loc`: create/reactivate, configure ACL, publish, retire, and delete
+the test version and API, twice. See [the lane documentation](tests/api-gateway-publication/README.md)
+for credentials, environment overrides, and projection assertions.
 
 Calling `make all` is the explicit billable-test opt-in; no additional variable
 or command-line switch is required. An explicit opt-out is honored and skips
