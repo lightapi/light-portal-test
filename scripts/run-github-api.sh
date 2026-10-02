@@ -20,6 +20,6 @@ export PROMOTION_E2E_EMAIL="${API_GATEWAY_E2E_EMAIL:-${PROMOTION_E2E_EMAIL:-}}"
 export PROMOTION_E2E_PASSWORD="${API_GATEWAY_E2E_PASSWORD:-${PROMOTION_E2E_PASSWORD:-}}"
 export PROMOTION_E2E_USER_TYPE="${API_GATEWAY_E2E_USER_TYPE:-${PROMOTION_E2E_USER_TYPE:-}}"
 export PROMOTION_REUSE_AUTH_STATE=true
-for name in "${names[@]}"; do export "$name"; done
+for name in "${names[@]}"; do export "${name?}"; done
 cd "$repo_root"
 exec ./node_modules/.bin/playwright test --config playwright.github-api.config.js "$@"
