@@ -8,9 +8,10 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 45_000,
-  reporter: [['line'], ['junit', { outputFile: path.join(reportRoot, 'junit.xml') }]],
+  reporter: [['line'], ['junit', { outputFile: path.join(reportRoot, 'junit.xml') }],
+    ['json', { outputFile: path.join(reportRoot, 'results.json') }]],
   outputDir: path.join(reportRoot, 'artifacts'),
-  globalSetup: './tests/api-gateway-publication/auth.setup.js',
+  globalSetup: './tests/github-api/auth.setup.js',
   use: {
     baseURL: process.env.API_GATEWAY_E2E_BASE_URL || 'https://localhost:3000',
     storageState: path.resolve(process.env.API_GATEWAY_E2E_AUTH_STATE_FILE

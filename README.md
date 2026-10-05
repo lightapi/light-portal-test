@@ -108,13 +108,24 @@ make functional
 
 `workflow-mcp-publication` is a destructive, serial local E2E lane for the
 dedicated `workflow-mcp-e2e-loc` Gateway. It normalizes that Gateway to an
-unpublished WF0001 baseline, publishes all 14 Tools, creates a current
+unpublished WF0001 baseline, publishes the expected WF0001 Tool catalog, creates a current
 snapshot and restarts the Gateway, unpublishes and deploys again, verifies a
 repeat removal is a no-op, then republishes and deploys the final state. It
 preserves unrelated Gateway Tools and must not target a shared or production
 instance. Override the `WORKFLOW_MCP_E2E_*` values in the private environment
 file when the local fixture IDs, URL, or container name differ.
 The lane is included in `make all` as part of the daily suite.
+
+After each restart, the lane waits for both listener health and application
+admission. Gateway `/health` can return 200 before `/mcp` accepts requests.
+A bounded, unauthenticated read-only MCP GET waits through the startup
+`503 service unavailable` response; 401, 404 or 405 confirms admission is open.
+It neither executes a Tool nor retries a publication/snapshot command. Other
+HTTP failures fail immediately. Run its focused readiness regression with:
+
+```bash
+node --test --test-isolation=none tests/contracts/gateway-readiness.test.mjs
+```
 
 `workflow-process-ui` uses `WORKFLOW_E2E_EMAIL` and
 `WORKFLOW_E2E_PASSWORD`, falling back to the configured `PROMOTION_E2E_*`

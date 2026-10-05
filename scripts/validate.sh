@@ -45,7 +45,8 @@ if command -v node >/dev/null 2>&1; then
   for file in "${node_files[@]}"; do
     node --check "$file"
   done
-  node --test "$repo_root"/runner/*.test.mjs "$repo_root"/tests/mcp/*.test.mjs
+  node --test "$repo_root"/runner/*.test.mjs "$repo_root"/tests/mcp/*.test.mjs \
+    "$repo_root"/tests/contracts/gateway-readiness.test.mjs
   if [[ -x "$repo_root/node_modules/.bin/playwright" ]]; then
     PROMOTION_SOURCE_HOST_ID=00000000-0000-0000-0000-000000000001 \
     PROMOTION_SOURCE_HOST_LABEL='source / canary' \

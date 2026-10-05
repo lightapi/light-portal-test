@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { waitForApplicationAdmission } from './readiness.js';
 
 const expectedWorkflowTools = [
   'workflow_add_process_note',
@@ -185,6 +186,7 @@ async function waitForGateway(page, gatewayUrl) {
     }).catch(() => null);
     return response?.status();
   }, { timeout: 120_000, intervals: [500, 1000, 2000, 5000] }).toBe(200);
+  await waitForApplicationAdmission(page.request, gatewayUrl);
 }
 
 async function gatewayTools(page, fixture, allowMissingMcpTransport = false) {
