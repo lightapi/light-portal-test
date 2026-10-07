@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "issueUrl",
+    "issue",
+    "comments",
+    "collection"
+  ],
+  "properties": {
+    "issueUrl": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,99}/issues/[1-9][0-9]{0,9}$"
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "url",
+        "body",
+        "author",
+        "authorUrl",
+        "createdAt",
+        "updatedAt",
+        "attachments",
+        "number",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "url": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "author": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authorUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999999999
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "comments": {
+      "type": "array",
+      "maxItems": 270,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "body",
+          "author",
+          "authorUrl",
+          "createdAt",
+          "updatedAt",
+          "attachments"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "url": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authorUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "collection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "perPage",
+        "pageRequests",
+        "commentCount",
+        "expectedComments",
+        "terminalShortPage",
+        "attachmentsDownloaded"
+      ],
+      "properties": {
+        "perPage": {
+          "const": 30
+        },
+        "pageRequests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "commentCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 270
+        },
+        "expectedComments": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 270
+        },
+        "terminalShortPage": {
+          "const": true
+        },
+        "attachmentsDownloaded": {
+          "const": false
+        }
+      }
+    }
+  }
+}

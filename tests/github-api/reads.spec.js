@@ -6,6 +6,18 @@ import { randomUUID, createHash } from 'node:crypto';
 import { readCurrentAccessToken } from '../promotion-ui/auth.setup.js';
 import { deniedIdentity, deniedToken } from './denied-auth.js';
 import { aclDenialEvidence, authorizationAudit } from './provenance.js';
+import { expectedDispatchIdentity, dispatchAudit, reconcileMatrix } from './dispatch-provenance.mjs';
+import { dispatchQualificationEnabled } from './qualification-settings.mjs';
+
+const qualifyDispatch = dispatchQualificationEnabled();
+const matrix = [];
+test.afterAll(async ({}, testInfo) => {
+  if (!qualifyDispatch) return;
+  const result = reconcileMatrix(matrix);
+  const file = testInfo.outputPath('dispatch-matrix.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(result, null, 2));
+});
 
 const issuePath = '/github/repos/lightapi/light-portal/issues/725';
 const caFile = process.env.GITHUB_API_CA_FILE
@@ -58,6 +70,7 @@ function gatewayRead(resourcePath, token, probe) {
 }
 
 async function readProbe(resource, caller, testInfo, verify) {
+  const identity = qualifyDispatch ? expectedDispatchIdentity() : null;
   const probe = { caller, resource, correlation: randomUUID(), started: new Date().toISOString() };
   probe.correlationSha256 = createHash('sha256').update(probe.correlation).digest('hex');
   try {
@@ -71,12 +84,14 @@ async function readProbe(resource, caller, testInfo, verify) {
     }
     const response = await gatewayRead(resource, token, probe);
     await verify(response, probe);
+    if (qualifyDispatch) probe.dispatch = await dispatchAudit(probe, response.status, identity);
     probe.outcome = 'pass';
   } catch (error) {
     probe.outcome = /provenance.*inconclusive|provenance unavailable/.test(error.message) ? 'inconclusive' : 'fail';
     throw error;
   } finally {
     probe.finished = new Date().toISOString();
+    if (qualifyDispatch) matrix.push(probe);
     const evidenceFile = testInfo.outputPath('sanitized-probe.json');
     fs.mkdirSync(path.dirname(evidenceFile), { recursive: true });
     fs.writeFileSync(evidenceFile, JSON.stringify(probe, null, 2));

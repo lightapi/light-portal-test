@@ -1,0 +1,327 @@
+{
+  "document": {
+    "dsl": "1.0.3",
+    "namespace": "default",
+    "name": "github-issue-context",
+    "version": "0.1.0",
+    "title": "UNPUBLISHED checkpoint A context-only qualification",
+    "metadata": {
+      "lightExpressionProfile": "cel-workflow-v2",
+      "authoringStatus": "UNPUBLISHED: isolated fixtures only; no live admission authority"
+    }
+  },
+  "evaluate": {
+    "language": "cel"
+  },
+  "input": {
+    "schema": {
+      "format": "json",
+      "document": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issueUrl"
+        ],
+        "properties": {
+          "issueUrl": {
+            "type": "string",
+            "maxLength": 256,
+            "pattern": "^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,99}/issues/[1-9][0-9]{0,9}$"
+          }
+        }
+      }
+    }
+  },
+  "do": [
+    {
+      "validateIssueUrl": {
+        "assert": {
+          "value": "${ workflow.input.issueUrl }",
+          "matches": "^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,99}/issues/[1-9][0-9]{0,9}$"
+        }
+      }
+    },
+    {
+      "parseIssueUrl": {
+        "set": {
+          "owner": "${ workflow.input.issueUrl.split('/')[3] }",
+          "repo": "${ workflow.input.issueUrl.split('/')[4] }",
+          "issue_number": "${ int(workflow.input.issueUrl.split('/')[6]) }"
+        },
+        "export": {
+          "as": {
+            "owner": "${ output.owner }",
+            "repo": "${ output.repo }",
+            "issue_number": "${ output.issue_number }",
+            "page": 1,
+            "requests": 0,
+            "comments": []
+          }
+        }
+      }
+    },
+    {
+      "validateParsedIssue": {
+        "assert": {
+          "value": "${ !context.owner.contains('--') && context.repo != '.' && context.repo != '..' && context.issue_number > 0 && context.issue_number <= 9999999999 && size(workflow.input.issueUrl.split('/')) == 7 }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "getIssue": {
+        "call": "http",
+        "with": {
+          "method": "GET",
+          "endpoint": {
+            "uri": "lightapi://GITHUB/getIssue"
+          },
+          "query": {}
+        },
+        "metadata": {
+          "workflowTool": {
+            "capabilityRef": "GITHUB/getIssue",
+            "toolId": "01a0f7f0-c88a-70cd-a725-ee589ef6f865",
+            "version": "1.0.0",
+            "lightapiDigest": "sha256:938096a1b99eb1ce863fbbf992ceb6d46af650a57c92a0647b37e16e20850455",
+            "allowedEnvironments": [
+              "dev"
+            ]
+          }
+        },
+        "retry": {
+          "limit": {
+            "attempt": {
+              "count": 3
+            }
+          },
+          "delay": {
+            "seconds": 2
+          }
+        },
+        "export": {
+          "as": {
+            "rawIssue": "${ output }"
+          }
+        }
+      }
+    },
+    {
+      "validateIssueObject": {
+        "assert": {
+          "value": "${ jsonEncode(context.rawIssue).startsWith('{') }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "validateIssueFieldTypes": {
+        "assert": {
+          "value": "${ (jsonEncode(context.rawIssue.id) == jsonEncode(int(context.rawIssue.id)) && context.rawIssue.id >= 1) && jsonEncode(context.rawIssue.html_url).startsWith('\"') && (jsonEncode(context.rawIssue.number) == jsonEncode(int(context.rawIssue.number)) && context.rawIssue.number >= 1) && (jsonEncode(context.rawIssue.comments) == jsonEncode(int(context.rawIssue.comments)) && context.rawIssue.comments >= 0) && jsonEncode(context.rawIssue.title).startsWith('\"') && (!has(context.rawIssue.body) || context.rawIssue.body == null || jsonEncode(context.rawIssue.body).startsWith('\"')) && (!has(context.rawIssue.created_at) || context.rawIssue.created_at == null || jsonEncode(context.rawIssue.created_at).startsWith('\"')) && (!has(context.rawIssue.updated_at) || context.rawIssue.updated_at == null || jsonEncode(context.rawIssue.updated_at).startsWith('\"')) && (!has(context.rawIssue.user) || context.rawIssue.user == null || (jsonEncode(context.rawIssue.user).startsWith('{') && (!has(context.rawIssue.user.login) || context.rawIssue.user.login == null || jsonEncode(context.rawIssue.user.login).startsWith('\"')) && (!has(context.rawIssue.user.html_url) || context.rawIssue.user.html_url == null || jsonEncode(context.rawIssue.user.html_url).startsWith('\"')))) && (!has(context.rawIssue.attachments) || context.rawIssue.attachments == null || (jsonEncode(context.rawIssue.attachments).startsWith('[') && context.rawIssue.attachments.all(a, jsonEncode(a).startsWith('{')))) }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "projectIssue": {
+        "set": {
+          "issue": "${ {'id': string(context.rawIssue.id), 'number': context.rawIssue.number, 'url': context.rawIssue.html_url, 'title': context.rawIssue.title, 'body': !has(context.rawIssue.body) || context.rawIssue.body == null ? '' : context.rawIssue.body, 'author': !has(context.rawIssue.user) || context.rawIssue.user == null ? null : (!has(context.rawIssue.user.login) ? null : context.rawIssue.user.login), 'authorUrl': !has(context.rawIssue.user) || context.rawIssue.user == null ? null : (!has(context.rawIssue.user.html_url) ? null : context.rawIssue.user.html_url), 'createdAt': !has(context.rawIssue.created_at) ? null : context.rawIssue.created_at, 'updatedAt': !has(context.rawIssue.updated_at) ? null : context.rawIssue.updated_at, 'attachments': !has(context.rawIssue.attachments) || context.rawIssue.attachments == null ? [] : context.rawIssue.attachments} }",
+          "expectedComments": "${ context.rawIssue.comments }",
+          "isPullRequest": "${ has(context.rawIssue.pull_request) }"
+        },
+        "export": {
+          "as": {
+            "issue": "${ output.issue }",
+            "expectedComments": "${ output.expectedComments }",
+            "isPullRequest": "${ output.isPullRequest }",
+            "rawIssue": null
+          }
+        }
+      }
+    },
+    {
+      "rejectPullRequest": {
+        "assert": {
+          "value": "${ !context.isPullRequest }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "validateIssueResponse": {
+        "assert": {
+          "value": "${ context.issue.number == context.issue_number && context.issue.url == workflow.input.issueUrl && context.expectedComments >= 0 && context.expectedComments <= 270 && size(bytes(jsonEncode(context.issue))) <= 16384 }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "listIssueComments": {
+        "call": "http",
+        "with": {
+          "method": "GET",
+          "endpoint": {
+            "uri": "lightapi://GITHUB/listIssueComments"
+          },
+          "query": {
+            "page": "${ string(context.page) }",
+            "per_page": "30"
+          }
+        },
+        "metadata": {
+          "workflowTool": {
+            "capabilityRef": "GITHUB/listIssueComments",
+            "toolId": "01a0f7f0-c88a-7cc9-a727-15f5d196c165",
+            "version": "1.0.0",
+            "lightapiDigest": "sha256:d452c0089bef28bb1a38f7694488ecf690ccc17dcae511674e248bf467625de8",
+            "allowedEnvironments": [
+              "dev"
+            ]
+          }
+        },
+        "retry": {
+          "limit": {
+            "attempt": {
+              "count": 3
+            }
+          },
+          "delay": {
+            "seconds": 2
+          }
+        },
+        "export": {
+          "as": {
+            "rawPage": "${ output }",
+            "requests": "${ context.requests + 1 }"
+          }
+        }
+      }
+    },
+    {
+      "validatePageBounds": {
+        "assert": {
+          "value": "${ jsonEncode(context.rawPage).startsWith('[') && size(context.rawPage) <= 30 && context.requests <= 10 && size(bytes(jsonEncode(context.rawPage))) <= 131072 }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "validateCommentObjects": {
+        "assert": {
+          "value": "${ context.rawPage.all(c, jsonEncode(c).startsWith('{')) }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "validateCommentFieldTypes": {
+        "assert": {
+          "value": "${ context.rawPage.all(c, (jsonEncode(c.id) == jsonEncode(int(c.id)) && c.id >= 1) && jsonEncode(c.html_url).startsWith('\"') && (!has(c.body) || c.body == null || jsonEncode(c.body).startsWith('\"')) && (!has(c.created_at) || c.created_at == null || jsonEncode(c.created_at).startsWith('\"')) && (!has(c.updated_at) || c.updated_at == null || jsonEncode(c.updated_at).startsWith('\"')) && (!has(c.user) || c.user == null || (jsonEncode(c.user).startsWith('{') && (!has(c.user.login) || c.user.login == null || jsonEncode(c.user.login).startsWith('\"')) && (!has(c.user.html_url) || c.user.html_url == null || jsonEncode(c.user.html_url).startsWith('\"')))) && (!has(c.attachments) || c.attachments == null || (jsonEncode(c.attachments).startsWith('[') && c.attachments.all(a, jsonEncode(a).startsWith('{'))))) }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "projectPage": {
+        "set": {
+          "pageComments": "${ context.rawPage.map(c, {'id': string(c.id), 'url': c.html_url, 'body': !has(c.body) || c.body == null ? '' : c.body, 'author': !has(c.user) || c.user == null ? null : (!has(c.user.login) ? null : c.user.login), 'authorUrl': !has(c.user) || c.user == null ? null : (!has(c.user.html_url) ? null : c.user.html_url), 'createdAt': !has(c.created_at) ? null : c.created_at, 'updatedAt': !has(c.updated_at) ? null : c.updated_at, 'attachments': !has(c.attachments) || c.attachments == null ? [] : c.attachments}) }"
+        },
+        "export": {
+          "as": {
+            "pageComments": "${ output.pageComments }",
+            "rawPage": null,
+            "lastPageSize": "${ size(context.rawPage) }"
+          }
+        }
+      }
+    },
+    {
+      "validateProjectedPage": {
+        "assert": {
+          "value": "${ context.pageComments.all(c, size(bytes(jsonEncode(c))) <= 8192 && c.url == workflow.input.issueUrl + '#issuecomment-' + c.id && context.pageComments.exists_one(d, d.id == c.id) && !context.comments.exists(d, d.id == c.id)) && size(bytes(jsonEncode(context.pageComments))) <= 32768 }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "appendPage": {
+        "set": {
+          "comments": "${ context.comments + context.pageComments }"
+        },
+        "export": {
+          "as": {
+            "comments": "${ output.comments }",
+            "pageComments": [],
+            "page": "${ context.page + 1 }"
+          }
+        }
+      }
+    },
+    {
+      "validateAggregateBounds": {
+        "assert": {
+          "value": "${ size(context.comments) <= 270 && size(context.comments) <= context.expectedComments && size(bytes(jsonEncode({'issue': context.issue, 'comments': context.comments}))) <= 49152 }",
+          "equals": true
+        }
+      }
+    },
+    {
+      "routePagination": {
+        "switch": [
+          {
+            "requestLimitReached": {
+              "when": "${ context.lastPageSize == 30 && context.requests >= 10 }",
+              "then": "failIncompleteCollection"
+            }
+          },
+          {
+            "nextPage": {
+              "when": "${ context.lastPageSize == 30 }",
+              "then": "listIssueComments"
+            }
+          },
+          {
+            "default": {
+              "then": "validateCompleteCollection"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "validateCompleteCollection": {
+        "assert": {
+          "value": "${ size(context.comments) == context.expectedComments }",
+          "equals": true
+        },
+        "then": "finishContext"
+      }
+    },
+    {
+      "failIncompleteCollection": {
+        "assert": {
+          "value": false,
+          "equals": true
+        },
+        "then": "end"
+      }
+    },
+    {
+      "finishContext": {
+        "set": {
+          "contextResult": "${ {'issueUrl': workflow.input.issueUrl, 'issue': context.issue, 'comments': context.comments, 'collection': {'perPage': 30, 'pageRequests': context.requests, 'commentCount': size(context.comments), 'expectedComments': context.expectedComments, 'terminalShortPage': true, 'attachmentsDownloaded': false}} }"
+        },
+        "export": {
+          "as": {
+            "contextResult": "${ output.contextResult }"
+          }
+        },
+        "then": "end"
+      }
+    }
+  ],
+  "output": {
+    "as": "${ context.contextResult }"
+  }
+}

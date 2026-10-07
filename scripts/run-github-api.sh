@@ -6,7 +6,10 @@ names=(API_GATEWAY_E2E_BASE_URL API_GATEWAY_E2E_AUTH_STATE_FILE API_GATEWAY_E2E_
        GITHUB_API_CA_FILE GITHUB_API_DENIED_EMAIL GITHUB_API_DENIED_PASSWORD
        GITHUB_API_DENIED_USER_TYPE GITHUB_API_DENIED_AUTH_STATE_FILE
        GITHUB_API_GATEWAY_CONTAINER GITHUB_API_EVIDENCE_DB_CONTAINER
-       GITHUB_API_GATEWAY_INSTANCE TLS_INSECURE)
+        GITHUB_API_GATEWAY_INSTANCE GITHUB_CONTEXT_DEFINITION_ID GITHUB_CONTEXT_HOST_ID
+        GITHUB_CONTEXT_EMPTY_ISSUE_URL GITHUB_CONTEXT_PAGED_ISSUE_URL
+        GITHUB_CONTEXT_GATEWAY_RECEIPT GITHUB_CONTEXT_TOOL_NAME GITHUB_CONTEXT_EVIDENCE_DIR GITHUB_API_REPORT_DIR GITHUB_API_DISPATCH_IDENTITY_FILE
+        GITHUB_CONTEXT_E2E_ENABLED GITHUB_API_DISPATCH_QUALIFICATION_ENABLED TLS_INSECURE)
 declare -A supplied=()
 for name in "${names[@]}"; do
   if [[ -v $name ]]; then supplied["$name"]="${!name}"; fi
@@ -25,4 +28,10 @@ export PROMOTION_E2E_USER_TYPE="${API_GATEWAY_E2E_USER_TYPE:-${PROMOTION_E2E_USE
 export PROMOTION_REUSE_AUTH_STATE=true
 for name in "${names[@]}"; do export "${name?}"; done
 cd "$repo_root"
+# The configuration allocates a unique discovery/execution directory beneath
+# this parent, including JSON/JUnit outputs; never target maintained summaries.
+export GITHUB_API_REPORT_DIR="${GITHUB_API_REPORT_DIR:-$repo_root/reports/github-api/runs}"
+node tests/github-api/context-support.test.mjs
+node tests/github-api/dispatch-provenance.test.mjs
+node tests/github-api/qualification-settings.test.mjs
 exec ./node_modules/.bin/playwright test --config playwright.github-api.config.js "$@"
